@@ -18,15 +18,12 @@ public class App {
 
         final QTM v = new QTM();
         v.value = 0;
-
         v.encodeAndSave();
 
         trust.value = new BerAny(v.code);
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(32, true);
-
         trust.encode(baos, true);
-
         final String base64 = Base64.getEncoder().encodeToString(baos.getArray());
 
         System.out.println(base64);
