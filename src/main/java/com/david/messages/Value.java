@@ -96,12 +96,16 @@ public class Value {
         int codeLength = 0;
         BerIdentifier passedIdentifier = berIdentifier;
 
+        codeLength += id.decodeAndCheck(is);
+
+        final BerLength length = new BerLength();
+        codeLength += length.decode(is);
+
         if (berIdentifier == null) {
             berIdentifier = new BerIdentifier();
             codeLength += berIdentifier.decode(is);
         }
 
-        BerLength length = new BerLength();
         if (berIdentifier.equals(BerIdentifier.APPLICATION_CLASS, BerIdentifier.PRIMITIVE, 0)) {
             source = new Entity();
             codeLength += source.decode(is, false);
