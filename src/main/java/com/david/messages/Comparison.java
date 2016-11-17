@@ -16,10 +16,12 @@ import java.io.InputStream;
 public class Comparison {
 
     public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.APPLICATION_CLASS, BerIdentifier.CONSTRUCTED, 5);
+    protected BerIdentifier id;
+
     public byte[] code = null;
     public BerEnum op = null;
+
     public Value value = null;
-    protected BerIdentifier id;
 
     public Comparison() {
         id = identifier;

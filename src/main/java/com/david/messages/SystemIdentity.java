@@ -16,7 +16,8 @@ public class SystemIdentity extends BerObjectIdentifier {
         super(code);
     }
 
-    public SystemIdentity(int... value) {
+    public SystemIdentity(int[] value) {
         super(value);
     }
+
 }

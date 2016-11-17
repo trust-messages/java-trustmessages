@@ -17,10 +17,12 @@ import java.io.InputStream;
 public class Error {
 
     public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.APPLICATION_CLASS, BerIdentifier.CONSTRUCTED, 10);
+    protected BerIdentifier id;
+
     public byte[] code = null;
     public BerEnum value = null;
+
     public BerPrintableString message = null;
-    protected BerIdentifier id;
 
     public Error() {
         id = identifier;

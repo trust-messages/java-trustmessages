@@ -16,13 +16,18 @@ import java.io.InputStream;
 public class Trust {
 
     public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.UNIVERSAL_CLASS, BerIdentifier.CONSTRUCTED, 16);
+    protected BerIdentifier id;
+
     public byte[] code = null;
     public SystemIdentity tms = null;
+
     public Entity target = null;
+
     public Service service = null;
+
     public BinaryTime date = null;
+
     public BerAny value = null;
-    protected BerIdentifier id;
 
     public Trust() {
         id = identifier;

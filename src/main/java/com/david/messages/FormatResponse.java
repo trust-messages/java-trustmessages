@@ -16,11 +16,14 @@ import java.io.InputStream;
 public class FormatResponse {
 
     public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.APPLICATION_CLASS, BerIdentifier.CONSTRUCTED, 1);
+    protected BerIdentifier id;
+
     public byte[] code = null;
     public SystemIdentity tms = null;
+
     public BerPrintableString assessment = null;
+
     public BerPrintableString trust = null;
-    protected BerIdentifier id;
 
     public FormatResponse() {
         id = identifier;

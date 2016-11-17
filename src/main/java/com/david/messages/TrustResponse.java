@@ -18,112 +18,13 @@ import java.util.List;
 
 public class TrustResponse {
 
-    public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.APPLICATION_CLASS, BerIdentifier.CONSTRUCTED, 3);
-    public byte[] code = null;
-    public BerInteger rid = null;
-    public Response response = null;
-    protected BerIdentifier id;
-
-    public TrustResponse() {
-        id = identifier;
-    }
-
-    public TrustResponse(byte[] code) {
-        id = identifier;
-        this.code = code;
-    }
-
-    public TrustResponse(BerInteger rid, Response response) {
-        id = identifier;
-        this.rid = rid;
-        this.response = response;
-    }
-
-    public int encode(BerByteArrayOutputStream os, boolean explicit) throws IOException {
-
-        int codeLength;
-
-        if (code != null) {
-            codeLength = code.length;
-            for (int i = code.length - 1; i >= 0; i--) {
-                os.write(code[i]);
-            }
-        } else {
-            codeLength = 0;
-            codeLength += response.encode(os, true);
-
-            codeLength += rid.encode(os, true);
-
-            codeLength += BerLength.encodeLength(os, codeLength);
-        }
-
-        if (explicit) {
-            codeLength += id.encode(os);
-        }
-
-        return codeLength;
-
-    }
-
-    public int decode(InputStream is, boolean explicit) throws IOException {
-        int codeLength = 0;
-        int subCodeLength = 0;
-        BerIdentifier berIdentifier = new BerIdentifier();
-
-        if (explicit) {
-            codeLength += id.decodeAndCheck(is);
-        }
-
-        BerLength length = new BerLength();
-        codeLength += length.decode(is);
-
-        int totalLength = length.val;
-        codeLength += totalLength;
-
-        subCodeLength += berIdentifier.decode(is);
-        if (berIdentifier.equals(BerInteger.identifier)) {
-            rid = new BerInteger();
-            subCodeLength += rid.decode(is, false);
-            subCodeLength += berIdentifier.decode(is);
-        } else {
-            throw new IOException("Identifier does not match the mandatory sequence element identifer.");
-        }
-
-        if (berIdentifier.equals(Response.identifier)) {
-            response = new Response();
-            subCodeLength += response.decode(is, false);
-            if (subCodeLength == totalLength) {
-                return codeLength;
-            }
-        }
-        throw new IOException("Unexpected end of sequence, length tag: " + totalLength + ", actual sequence length: " + subCodeLength);
-
-
-    }
-
-    public void encodeAndSave(int encodingSizeGuess) throws IOException {
-        BerByteArrayOutputStream os = new BerByteArrayOutputStream(encodingSizeGuess);
-        encode(os, false);
-        code = os.getArray();
-    }
-
-    public String toString() {
-        StringBuilder sb = new StringBuilder("SEQUENCE{");
-        sb.append("rid: ").append(rid);
-
-        sb.append(", ");
-        sb.append("response: ").append(response);
-
-        sb.append("}");
-        return sb.toString();
-    }
-
     public static class Response {
 
         public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.UNIVERSAL_CLASS, BerIdentifier.CONSTRUCTED, 16);
+        protected BerIdentifier id;
+
         public byte[] code = null;
         public List<Trust> seqOf = null;
-        protected BerIdentifier id;
 
         public Response() {
             id = identifier;
@@ -217,6 +118,108 @@ public class TrustResponse {
             return sb.toString();
         }
 
+    }
+
+    public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.APPLICATION_CLASS, BerIdentifier.CONSTRUCTED, 3);
+    protected BerIdentifier id;
+
+    public byte[] code = null;
+    public BerInteger rid = null;
+
+    public Response response = null;
+
+    public TrustResponse() {
+        id = identifier;
+    }
+
+    public TrustResponse(byte[] code) {
+        id = identifier;
+        this.code = code;
+    }
+
+    public TrustResponse(BerInteger rid, Response response) {
+        id = identifier;
+        this.rid = rid;
+        this.response = response;
+    }
+
+    public int encode(BerByteArrayOutputStream os, boolean explicit) throws IOException {
+
+        int codeLength;
+
+        if (code != null) {
+            codeLength = code.length;
+            for (int i = code.length - 1; i >= 0; i--) {
+                os.write(code[i]);
+            }
+        } else {
+            codeLength = 0;
+            codeLength += response.encode(os, true);
+
+            codeLength += rid.encode(os, true);
+
+            codeLength += BerLength.encodeLength(os, codeLength);
+        }
+
+        if (explicit) {
+            codeLength += id.encode(os);
+        }
+
+        return codeLength;
+
+    }
+
+    public int decode(InputStream is, boolean explicit) throws IOException {
+        int codeLength = 0;
+        int subCodeLength = 0;
+        BerIdentifier berIdentifier = new BerIdentifier();
+
+        if (explicit) {
+            codeLength += id.decodeAndCheck(is);
+        }
+
+        BerLength length = new BerLength();
+        codeLength += length.decode(is);
+
+        int totalLength = length.val;
+        codeLength += totalLength;
+
+        subCodeLength += berIdentifier.decode(is);
+        if (berIdentifier.equals(BerInteger.identifier)) {
+            rid = new BerInteger();
+            subCodeLength += rid.decode(is, false);
+            subCodeLength += berIdentifier.decode(is);
+        } else {
+            throw new IOException("Identifier does not match the mandatory sequence element identifer.");
+        }
+
+        if (berIdentifier.equals(Response.identifier)) {
+            response = new Response();
+            subCodeLength += response.decode(is, false);
+            if (subCodeLength == totalLength) {
+                return codeLength;
+            }
+        }
+        throw new IOException("Unexpected end of sequence, length tag: " + totalLength + ", actual sequence length: " + subCodeLength);
+
+
+    }
+
+    public void encodeAndSave(int encodingSizeGuess) throws IOException {
+        BerByteArrayOutputStream os = new BerByteArrayOutputStream(encodingSizeGuess);
+        encode(os, false);
+        code = os.getArray();
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder("SEQUENCE{");
+        sb.append("rid: ").append(rid);
+
+        sb.append(", ");
+        sb.append("response: ").append(response);
+
+        sb.append("}");
+        return sb.toString();
     }
 
 }

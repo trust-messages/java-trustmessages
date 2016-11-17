@@ -12,10 +12,6 @@ public class Entity extends BerPrintableString {
     public Entity() {
     }
 
-    public Entity(String s) {
-        this(s.getBytes());
-    }
-
     public Entity(byte[] value) {
         super(value);
     }

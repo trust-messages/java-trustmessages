@@ -12,10 +12,6 @@ public class Service extends BerPrintableString {
     public Service() {
     }
 
-    public Service(String s) {
-        this(s.getBytes());
-    }
-
     public Service(byte[] value) {
         super(value);
     }
