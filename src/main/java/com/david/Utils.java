@@ -30,7 +30,6 @@ public class Utils {
 
         System.out.println(Base64.getEncoder().encodeToString(baos.getArray()));
         System.out.println(m);
-        m.
     }
 
     public static Query getQuery(String query) {
