@@ -113,10 +113,6 @@ public class SL {
 
     }
 
-    public void encodeAndSave() throws IOException {
-        encodeAndSave(28);
-    }
-
     public void encodeAndSave(int encodingSizeGuess) throws IOException {
         BerByteArrayOutputStream os = new BerByteArrayOutputStream(encodingSizeGuess);
         encode(os, false);
