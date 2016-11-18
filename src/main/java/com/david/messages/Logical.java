@@ -15,15 +15,12 @@ import java.io.InputStream;
 
 public class Logical {
 
-    public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.APPLICATION_CLASS, BerIdentifier.CONSTRUCTED, 6);
-    protected BerIdentifier id;
-
+    public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.APPLICATION_CLASS, BerIdentifier.CONSTRUCTED, 5);
     public byte[] code = null;
     public BerEnum op = null;
-
     public Query l = null;
-
     public Query r = null;
+    protected BerIdentifier id;
 
     public Logical() {
         id = identifier;

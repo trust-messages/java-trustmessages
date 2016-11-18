@@ -14,26 +14,24 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
-public class Error {
+public class Fault {
 
     public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.APPLICATION_CLASS, BerIdentifier.CONSTRUCTED, 10);
-    protected BerIdentifier id;
-
     public byte[] code = null;
     public BerEnum value = null;
-
     public BerPrintableString message = null;
+    protected BerIdentifier id;
 
-    public Error() {
+    public Fault() {
         id = identifier;
     }
 
-    public Error(byte[] code) {
+    public Fault(byte[] code) {
         id = identifier;
         this.code = code;
     }
 
-    public Error(BerEnum value, BerPrintableString message) {
+    public Fault(BerEnum value, BerPrintableString message) {
         id = identifier;
         this.value = value;
         this.message = message;

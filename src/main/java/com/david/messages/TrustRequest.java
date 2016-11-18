@@ -16,12 +16,10 @@ import java.io.InputStream;
 public class TrustRequest {
 
     public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.APPLICATION_CLASS, BerIdentifier.CONSTRUCTED, 2);
-    protected BerIdentifier id;
-
     public byte[] code = null;
     public BerInteger rid = null;
-
     public Query query = null;
+    protected BerIdentifier id;
 
     public TrustRequest() {
         id = identifier;

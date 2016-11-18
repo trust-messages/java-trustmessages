@@ -14,10 +14,6 @@ import java.io.InputStream;
 
 public class Value {
 
-    public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.APPLICATION_CLASS,
-            BerIdentifier.CONSTRUCTED, 7);
-    protected BerIdentifier id;
-
     public byte[] code = null;
     public Entity source = null;
 
@@ -28,16 +24,13 @@ public class Value {
     public Service service = null;
 
     public Value() {
-        this.id = identifier;
     }
 
     public Value(byte[] code) {
-        this.id = identifier;
         this.code = code;
     }
 
     public Value(Entity source, Entity target, BinaryTime date, Service service) {
-        this.id = identifier;
         this.source = source;
         this.target = target;
         this.date = date;
@@ -58,6 +51,8 @@ public class Value {
             // write tag: APPLICATION_CLASS, PRIMITIVE, 3
             os.write(0x43);
             codeLength += 1;
+            return codeLength;
+
         }
 
         if (date != null) {
@@ -65,6 +60,8 @@ public class Value {
             // write tag: APPLICATION_CLASS, PRIMITIVE, 2
             os.write(0x42);
             codeLength += 1;
+            return codeLength;
+
         }
 
         if (target != null) {
@@ -72,6 +69,8 @@ public class Value {
             // write tag: APPLICATION_CLASS, PRIMITIVE, 1
             os.write(0x41);
             codeLength += 1;
+            return codeLength;
+
         }
 
         if (source != null) {
@@ -79,33 +78,23 @@ public class Value {
             // write tag: APPLICATION_CLASS, PRIMITIVE, 0
             os.write(0x40);
             codeLength += 1;
+            return codeLength;
+
         }
 
-        if (codeLength == 0) {
-            throw new IOException("Error encoding BerChoice: No item in choice was selected.");
-        }
-
-        codeLength += BerLength.encodeLength(os, codeLength);
-        codeLength += id.encode(os);
-
-        return codeLength;
-
+        throw new IOException("Error encoding BerChoice: No item in choice was selected.");
     }
 
     public int decode(InputStream is, BerIdentifier berIdentifier) throws IOException {
         int codeLength = 0;
         BerIdentifier passedIdentifier = berIdentifier;
 
-        codeLength += id.decodeAndCheck(is);
-
-        final BerLength length = new BerLength();
-        codeLength += length.decode(is);
-
         if (berIdentifier == null) {
             berIdentifier = new BerIdentifier();
             codeLength += berIdentifier.decode(is);
         }
 
+        BerLength length = new BerLength();
         if (berIdentifier.equals(BerIdentifier.APPLICATION_CLASS, BerIdentifier.PRIMITIVE, 0)) {
             source = new Entity();
             codeLength += source.decode(is, false);

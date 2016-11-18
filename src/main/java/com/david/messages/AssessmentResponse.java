@@ -18,115 +18,11 @@ import java.util.List;
 
 public class AssessmentResponse {
 
-    public static class Response {
-
-        public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.UNIVERSAL_CLASS, BerIdentifier.CONSTRUCTED, 16);
-        protected BerIdentifier id;
-
-        public byte[] code = null;
-        public List<Assessment> seqOf = null;
-
-        public Response() {
-            id = identifier;
-            seqOf = new ArrayList<Assessment>();
-        }
-
-        public Response(byte[] code) {
-            id = identifier;
-            this.code = code;
-        }
-
-        public Response(List<Assessment> seqOf) {
-            id = identifier;
-            this.seqOf = seqOf;
-        }
-
-        public int encode(BerByteArrayOutputStream os, boolean explicit) throws IOException {
-            int codeLength;
-
-            if (code != null) {
-                codeLength = code.length;
-                for (int i = code.length - 1; i >= 0; i--) {
-                    os.write(code[i]);
-                }
-            } else {
-                codeLength = 0;
-                for (int i = (seqOf.size() - 1); i >= 0; i--) {
-                    codeLength += seqOf.get(i).encode(os, true);
-                }
-
-                codeLength += BerLength.encodeLength(os, codeLength);
-
-            }
-
-            if (explicit) {
-                codeLength += id.encode(os);
-            }
-
-            return codeLength;
-        }
-
-        public int decode(InputStream is, boolean explicit) throws IOException {
-            int codeLength = 0;
-            int subCodeLength = 0;
-            BerIdentifier berIdentifier = new BerIdentifier();
-            if (explicit) {
-                codeLength += id.decodeAndCheck(is);
-            }
-
-            BerLength length = new BerLength();
-            codeLength += length.decode(is);
-            int totalLength = length.val;
-
-            while (subCodeLength < totalLength) {
-                Assessment element = new Assessment();
-                subCodeLength += element.decode(is, true);
-                seqOf.add(element);
-            }
-            if (subCodeLength != totalLength) {
-                throw new IOException("Decoded SequenceOf or SetOf has wrong length. Expected " + totalLength + " but has " + subCodeLength);
-
-            }
-            codeLength += subCodeLength;
-
-            return codeLength;
-        }
-
-        public void encodeAndSave(int encodingSizeGuess) throws IOException {
-            BerByteArrayOutputStream os = new BerByteArrayOutputStream(encodingSizeGuess);
-            encode(os, false);
-            code = os.getArray();
-        }
-
-        public String toString() {
-            StringBuilder sb = new StringBuilder("SEQUENCE OF{");
-
-            if (seqOf == null) {
-                sb.append("null");
-            } else {
-                Iterator<Assessment> it = seqOf.iterator();
-                if (it.hasNext()) {
-                    sb.append(it.next());
-                    while (it.hasNext()) {
-                        sb.append(", ").append(it.next());
-                    }
-                }
-            }
-
-            sb.append("}");
-
-            return sb.toString();
-        }
-
-    }
-
-    public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.APPLICATION_CLASS, BerIdentifier.CONSTRUCTED, 9);
-    protected BerIdentifier id;
-
+    public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.APPLICATION_CLASS, BerIdentifier.CONSTRUCTED, 7);
     public byte[] code = null;
     public BerInteger rid = null;
-
     public Response response = null;
+    protected BerIdentifier id;
 
     public AssessmentResponse() {
         id = identifier;
@@ -220,6 +116,107 @@ public class AssessmentResponse {
 
         sb.append("}");
         return sb.toString();
+    }
+
+    public static class Response {
+
+        public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.UNIVERSAL_CLASS, BerIdentifier.CONSTRUCTED, 16);
+        public byte[] code = null;
+        public List<Assessment> seqOf = null;
+        protected BerIdentifier id;
+
+        public Response() {
+            id = identifier;
+            seqOf = new ArrayList<Assessment>();
+        }
+
+        public Response(byte[] code) {
+            id = identifier;
+            this.code = code;
+        }
+
+        public Response(List<Assessment> seqOf) {
+            id = identifier;
+            this.seqOf = seqOf;
+        }
+
+        public int encode(BerByteArrayOutputStream os, boolean explicit) throws IOException {
+            int codeLength;
+
+            if (code != null) {
+                codeLength = code.length;
+                for (int i = code.length - 1; i >= 0; i--) {
+                    os.write(code[i]);
+                }
+            } else {
+                codeLength = 0;
+                for (int i = (seqOf.size() - 1); i >= 0; i--) {
+                    codeLength += seqOf.get(i).encode(os, true);
+                }
+
+                codeLength += BerLength.encodeLength(os, codeLength);
+
+            }
+
+            if (explicit) {
+                codeLength += id.encode(os);
+            }
+
+            return codeLength;
+        }
+
+        public int decode(InputStream is, boolean explicit) throws IOException {
+            int codeLength = 0;
+            int subCodeLength = 0;
+            BerIdentifier berIdentifier = new BerIdentifier();
+            if (explicit) {
+                codeLength += id.decodeAndCheck(is);
+            }
+
+            BerLength length = new BerLength();
+            codeLength += length.decode(is);
+            int totalLength = length.val;
+
+            while (subCodeLength < totalLength) {
+                Assessment element = new Assessment();
+                subCodeLength += element.decode(is, true);
+                seqOf.add(element);
+            }
+            if (subCodeLength != totalLength) {
+                throw new IOException("Decoded SequenceOf or SetOf has wrong length. Expected " + totalLength + " but has " + subCodeLength);
+
+            }
+            codeLength += subCodeLength;
+
+            return codeLength;
+        }
+
+        public void encodeAndSave(int encodingSizeGuess) throws IOException {
+            BerByteArrayOutputStream os = new BerByteArrayOutputStream(encodingSizeGuess);
+            encode(os, false);
+            code = os.getArray();
+        }
+
+        public String toString() {
+            StringBuilder sb = new StringBuilder("SEQUENCE OF{");
+
+            if (seqOf == null) {
+                sb.append("null");
+            } else {
+                Iterator<Assessment> it = seqOf.iterator();
+                if (it.hasNext()) {
+                    sb.append(it.next());
+                    while (it.hasNext()) {
+                        sb.append(", ").append(it.next());
+                    }
+                }
+            }
+
+            sb.append("}");
+
+            return sb.toString();
+        }
+
     }
 
 }

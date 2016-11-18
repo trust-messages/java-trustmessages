@@ -27,7 +27,7 @@ public class Message {
 
     public FormatResponse formatResponse = null;
 
-    public Error error = null;
+    public Fault fault = null;
 
     public Message() {
     }
@@ -36,14 +36,14 @@ public class Message {
         this.code = code;
     }
 
-    public Message(AssessmentRequest assessmentRequest, AssessmentResponse assessmentResponse, TrustRequest trustRequest, TrustResponse trustResponse, FormatRequest formatRequest, FormatResponse formatResponse, Error error) {
+    public Message(AssessmentRequest assessmentRequest, AssessmentResponse assessmentResponse, TrustRequest trustRequest, TrustResponse trustResponse, FormatRequest formatRequest, FormatResponse formatResponse, Fault fault) {
         this.assessmentRequest = assessmentRequest;
         this.assessmentResponse = assessmentResponse;
         this.trustRequest = trustRequest;
         this.trustResponse = trustResponse;
         this.formatRequest = formatRequest;
         this.formatResponse = formatResponse;
-        this.error = error;
+        this.fault = fault;
     }
 
     public int encode(BerByteArrayOutputStream os, boolean explicit) throws IOException {
@@ -55,8 +55,8 @@ public class Message {
 
         }
         int codeLength = 0;
-        if (error != null) {
-            codeLength += error.encode(os, true);
+        if (fault != null) {
+            codeLength += fault.encode(os, true);
             return codeLength;
 
         }
@@ -146,9 +146,9 @@ public class Message {
             return codeLength;
         }
 
-        if (berIdentifier.equals(Error.identifier)) {
-            error = new Error();
-            codeLength += error.decode(is, false);
+        if (berIdentifier.equals(Fault.identifier)) {
+            fault = new Fault();
+            codeLength += fault.decode(is, false);
             return codeLength;
         }
 
@@ -189,8 +189,8 @@ public class Message {
             return "CHOICE{formatResponse: " + formatResponse + "}";
         }
 
-        if (error != null) {
-            return "CHOICE{error: " + error + "}";
+        if (fault != null) {
+            return "CHOICE{fault: " + fault + "}";
         }
 
         return "unknown";

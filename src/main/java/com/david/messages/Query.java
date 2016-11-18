@@ -14,26 +14,19 @@ import java.io.InputStream;
 
 public class Query {
 
-    public static final BerIdentifier identifier = new BerIdentifier(BerIdentifier.APPLICATION_CLASS,
-            BerIdentifier.CONSTRUCTED, 4);
-    protected BerIdentifier id;
-
     public byte[] code = null;
     public Comparison cmp = null;
 
     public Logical log = null;
 
     public Query() {
-        this.id = identifier;
     }
 
     public Query(byte[] code) {
-        this.id = identifier;
         this.code = code;
     }
 
     public Query(Comparison cmp, Logical log) {
-        this.id = identifier;
         this.cmp = cmp;
         this.log = log;
     }
@@ -49,16 +42,12 @@ public class Query {
         int codeLength = 0;
         if (log != null) {
             codeLength += log.encode(os, true);
-            codeLength += BerLength.encodeLength(os, codeLength);
-            codeLength += id.encode(os);
             return codeLength;
 
         }
 
         if (cmp != null) {
             codeLength += cmp.encode(os, true);
-            codeLength += BerLength.encodeLength(os, codeLength);
-            codeLength += id.encode(os);
             return codeLength;
 
         }
