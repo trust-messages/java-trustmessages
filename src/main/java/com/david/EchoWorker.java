@@ -8,11 +8,11 @@ class EchoWorker implements Runnable {
     private final BlockingQueue<ServerDataEvent> queue = new LinkedBlockingQueue<>();
 
     void processData(TrustSocket server, SocketChannel socket, byte[] data, int count) {
-        final byte[] dataCopy = new byte[count];
-        System.arraycopy(data, 0, dataCopy, 0, count);
+        final byte[] copy = new byte[count];
+        System.arraycopy(data, 0, copy, 0, count);
 
         try {
-            queue.put(new ServerDataEvent(server, socket, dataCopy));
+            queue.put(new ServerDataEvent(server, socket, copy));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -22,7 +22,7 @@ class EchoWorker implements Runnable {
         while (true) {
             try {
                 final ServerDataEvent dataEvent = queue.take();
-                dataEvent.server.send(dataEvent.socket, dataEvent.data);
+                dataEvent.socket.send(dataEvent.channel, dataEvent.data);
             } catch (InterruptedException e) {
             }
         }

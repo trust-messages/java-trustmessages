@@ -9,7 +9,13 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 
 public class TrustSocket implements Runnable {
     public final InetAddress hostAddress;
@@ -21,9 +27,9 @@ public class TrustSocket implements Runnable {
 
     private final EchoWorker worker;
 
-    private final List<ChangeRequest> changeRequests = new ArrayList<>();
+    private final Queue<ChangeRequest> changeRequests = new ConcurrentLinkedQueue<>();
 
-    private final Map<SocketChannel, List<ByteBuffer>> pendingData = new HashMap<>();
+    private final ConcurrentMap<SocketChannel, List<ByteBuffer>> pendingData = new ConcurrentHashMap<>();
 
     public TrustSocket(InetAddress hostAddress, int port, EchoWorker worker) throws IOException {
         this.hostAddress = hostAddress;
@@ -42,20 +48,18 @@ public class TrustSocket implements Runnable {
         while (true) {
             try {
                 // Process any pending changes
-                synchronized (this.changeRequests) {
-                    for (ChangeRequest change : changeRequests) {
-                        switch (change.type) {
-                            case ChangeRequest.CHANGEOPS:
-                                final SelectionKey key = change.socket.keyFor(this.selector);
-                                key.interestOps(change.ops);
-                                break;
-                        }
+                for (ChangeRequest change : changeRequests) {
+                    switch (change.type) {
+                        case ChangeRequest.CHANGEOPS:
+                            final SelectionKey key = change.socket.keyFor(selector);
+                            key.interestOps(change.ops);
+                            break;
                     }
-                    this.changeRequests.clear();
                 }
+                changeRequests.clear();
 
                 selector.select();
-                final Iterator selectedKeys = this.selector.selectedKeys().iterator();
+                final Iterator selectedKeys = selector.selectedKeys().iterator();
 
                 while (selectedKeys.hasNext()) {
                     final SelectionKey key = (SelectionKey) selectedKeys.next();
@@ -82,24 +86,22 @@ public class TrustSocket implements Runnable {
     private void write(SelectionKey key) throws IOException {
         final SocketChannel channel = (SocketChannel) key.channel();
 
-        synchronized (pendingData) {
-            final List<ByteBuffer> queue = pendingData.get(channel);
+        final List<ByteBuffer> queue = pendingData.get(channel);
 
-            // Write until there's no more data ...
-            while (!queue.isEmpty()) {
-                final ByteBuffer buf = queue.get(0);
-                channel.write(buf);
-                if (buf.remaining() > 0) {
-                    // ... or the socket's buffer fills up
-                    break;
-                }
-                queue.remove(0);
+        // Write until there's no more data ...
+        while (!queue.isEmpty()) {
+            final ByteBuffer buf = queue.get(0);
+            channel.write(buf);
+            if (buf.remaining() > 0) {
+                // ... or the channel's buffer fills up
+                break;
             }
+            queue.remove(0);
+        }
 
-            if (queue.isEmpty()) {
-                // Write completed; switch back to read events
-                key.interestOps(SelectionKey.OP_READ);
-            }
+        if (queue.isEmpty()) {
+            // Write completed; switch back to read events
+            key.interestOps(SelectionKey.OP_READ);
         }
     }
 
@@ -134,14 +136,14 @@ public class TrustSocket implements Runnable {
     }
 
     private void accept(SelectionKey key) throws IOException {
-        // For an accept to be pending the channel must be a server socket channel.
+        // For an accept to be pending the channel must be a socket channel channel.
         final ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
 
         // Accept the connection and make it non-blocking
         final SocketChannel socketChannel = serverSocketChannel.accept();
         socketChannel.configureBlocking(false);
 
-        System.out.printf("[%s] <CONNECTED>%n",
+        System.out.printf("[%s]: <CONNECTED>%n",
                 socketChannel.socket().getRemoteSocketAddress());
 
         // Register the new SocketChannel with our Selector, indicating
@@ -161,21 +163,17 @@ public class TrustSocket implements Runnable {
 
     public void send(SocketChannel channel, byte[] data) {
         // XXX: Other threads may call this method.
-        synchronized (changeRequests) {
-            // Indicate we want the interest ops set changed
-            changeRequests.add(new ChangeRequest(channel, ChangeRequest.CHANGEOPS, SelectionKey.OP_WRITE));
+        // Indicate we want the interest ops set changed
+        changeRequests.add(new ChangeRequest(channel, ChangeRequest.CHANGEOPS, SelectionKey.OP_WRITE));
 
-            // And queue the data we want written
-            synchronized (pendingData) {
-                List<ByteBuffer> queue = pendingData.get(channel);
+        // And queue the data we want written
+        List<ByteBuffer> queue = pendingData.get(channel);
 
-                if (queue == null) {
-                    queue = new ArrayList<>();
-                    pendingData.put(channel, queue);
-                }
-                queue.add(ByteBuffer.wrap(data));
-            }
+        if (queue == null) {
+            queue = new ArrayList<>();
+            pendingData.put(channel, queue);
         }
+        queue.add(ByteBuffer.wrap(data));
 
         // Finally, wake up our selecting thread so it can make the required changes
         selector.wakeup();
