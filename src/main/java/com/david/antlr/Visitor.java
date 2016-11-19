@@ -3,7 +3,6 @@ package com.david.antlr;
 import com.david.messages.*;
 import org.openmuc.jasn1.ber.types.BerEnum;
 
-import java.lang.Error;
 import java.util.HashMap;
 import java.util.Map;
 
