@@ -1,38 +1,30 @@
 package com.david;
 
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
-public class EchoWorker implements Runnable {
-    private List<ServerDataEvent> queue = new ArrayList<>();
+class EchoWorker implements Runnable {
+    private final BlockingQueue<ServerDataEvent> queue = new LinkedBlockingQueue<>();
 
-    public void processData(TrustSocket server, SocketChannel socket, byte[] data, int count) {
-        byte[] dataCopy = new byte[count];
+    void processData(TrustSocket server, SocketChannel socket, byte[] data, int count) {
+        final byte[] dataCopy = new byte[count];
         System.arraycopy(data, 0, dataCopy, 0, count);
-        synchronized (queue) {
-            queue.add(new ServerDataEvent(server, socket, dataCopy));
-            queue.notify();
+
+        try {
+            queue.put(new ServerDataEvent(server, socket, dataCopy));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
     public void run() {
-        ServerDataEvent dataEvent;
-
         while (true) {
-            // Wait for data to become available
-            synchronized (queue) {
-                while (queue.isEmpty()) {
-                    try {
-                        queue.wait();
-                    } catch (InterruptedException e) {
-                    }
-                }
-                dataEvent = queue.remove(0);
+            try {
+                final ServerDataEvent dataEvent = queue.take();
+                dataEvent.server.send(dataEvent.socket, dataEvent.data);
+            } catch (InterruptedException e) {
             }
-
-            // Return to sender
-            dataEvent.server.send(dataEvent.socket, dataEvent.data);
         }
     }
 }

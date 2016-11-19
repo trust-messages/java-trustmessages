@@ -48,6 +48,7 @@ public class TrustSocket implements Runnable {
                             case ChangeRequest.CHANGEOPS:
                                 final SelectionKey key = change.socket.keyFor(this.selector);
                                 key.interestOps(change.ops);
+                                break;
                         }
                     }
                     this.changeRequests.clear();
@@ -84,7 +85,7 @@ public class TrustSocket implements Runnable {
         synchronized (pendingData) {
             final List<ByteBuffer> queue = pendingData.get(channel);
 
-            // Write until there's not more data ...
+            // Write until there's no more data ...
             while (!queue.isEmpty()) {
                 final ByteBuffer buf = queue.get(0);
                 channel.write(buf);
@@ -96,9 +97,7 @@ public class TrustSocket implements Runnable {
             }
 
             if (queue.isEmpty()) {
-                // We wrote away all data, so we're no longer interested
-                // in writing on this socket. Switch back to waiting for
-                // data.
+                // Write completed; switch back to read events
                 key.interestOps(SelectionKey.OP_READ);
             }
         }
@@ -131,7 +130,6 @@ public class TrustSocket implements Runnable {
         // Hand the data off to our worker thread
         final byte[] data = new byte[numRead];
         System.arraycopy(readBuffer.array(), 0, data, 0, numRead);
-        System.out.printf("[%s]: %s%n", channel.socket().getRemoteSocketAddress(), new String(data));
         worker.processData(this, channel, data, numRead);
     }
 
@@ -162,7 +160,9 @@ public class TrustSocket implements Runnable {
     }
 
     public void send(SocketChannel channel, byte[] data) {
+        // XXX: Other threads may call this method.
         synchronized (changeRequests) {
+            // Indicate we want the interest ops set changed
             changeRequests.add(new ChangeRequest(channel, ChangeRequest.CHANGEOPS, SelectionKey.OP_WRITE));
 
             // And queue the data we want written
