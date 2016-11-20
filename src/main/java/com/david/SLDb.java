@@ -1,22 +1,39 @@
 package com.david;
 
-import com.david.format.QTM;
+import com.david.format.SL;
 import com.david.messages.*;
 import org.openmuc.jasn1.ber.types.BerAny;
+import org.openmuc.jasn1.ber.types.BerReal;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-public class QTMDb extends InMemoryTrustDb {
+public class SLDb extends InMemoryTrustDb {
+    private static final SystemIdentity ID = new SystemIdentity(new int[]{2, 2, 2});
     private static final List<Trust> TRUST = new ArrayList<>();
     private static final List<Assessment> ASSESSMENTS = new ArrayList<>();
+
     private static final Map<String, String> FORMAT = new HashMap<>();
 
-    static final Iterator<Integer> VALUES = IntStream.iterate(0, i -> (i + 1) % 5).iterator();
+    private static final Random RANDOM = new Random();
 
-    private static final SystemIdentity ID = new SystemIdentity(new int[]{1, 1, 1});
+    private static final Iterator<Triple> VALUES = Stream.generate(() -> {
+        final double b = RANDOM.nextDouble();
+        final double d = RANDOM.nextDouble() * b;
+        return new Triple(b, d, 1d - b - d);
+    }).iterator();
+
+    private static class Triple {
+        final BerReal b, d, u;
+
+        private Triple(double b, double d, double u) {
+            this.b = new BerReal(b);
+            this.d = new BerReal(d);
+            this.u = new BerReal(u);
+        }
+    }
 
     static {
         for (String target : USERS) {
@@ -26,10 +43,11 @@ public class QTMDb extends InMemoryTrustDb {
                 t.target = new Entity(target.getBytes());
                 t.service = new Service(service.getBytes());
                 t.date = new BinaryTime(TIME.next());
-                final QTM v = new QTM(VALUES.next());
+                final Triple tv = VALUES.next();
+                final SL v = new SL(tv.b, tv.d, tv.u);
 
                 try {
-                    v.encodeAndSave(34);
+                    v.encodeAndSave(64);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -52,21 +70,22 @@ public class QTMDb extends InMemoryTrustDb {
                     a.target = new Entity(target.getBytes());
                     a.service = new Service(service.getBytes());
                     a.date = new BinaryTime(TIME.next());
-                    final QTM sl = new QTM(VALUES.next());
+                    final Triple tv = VALUES.next();
+                    final SL v = new SL(tv.b, tv.d, tv.u);
 
                     try {
-                        sl.encodeAndSave(34);
+                        v.encodeAndSave(34);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
 
-                    a.value = new BerAny(sl.code);
+                    a.value = new BerAny(v.code);
                     ASSESSMENTS.add(a);
                 }
             }
         }
         FORMAT.put("trust", "ValueFormat DEFINITIONS ::= BEGIN ValueFormat ::= " +
-                "ENUMERATED { very-bad (0), bad (1), neutral (2), good (3), very-good (4) } END");
+                "SEQUENCE { b REAL, d REAL, u REAL } END");
         FORMAT.put("assessment", FORMAT.get("trust"));
     }
 
