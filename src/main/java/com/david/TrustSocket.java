@@ -9,9 +9,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -29,7 +27,7 @@ public class TrustSocket implements Runnable {
 
     private final Queue<ChangeRequest> changeRequests = new ConcurrentLinkedQueue<>();
 
-    private final ConcurrentMap<SocketChannel, List<ByteBuffer>> pendingData = new ConcurrentHashMap<>();
+    private final ConcurrentMap<SocketChannel, Queue<ByteBuffer>> pendingData = new ConcurrentHashMap<>();
 
     public TrustSocket(InetAddress hostAddress, int port, EchoWorker worker) throws IOException {
         this.hostAddress = hostAddress;
@@ -86,17 +84,17 @@ public class TrustSocket implements Runnable {
     private void write(SelectionKey key) throws IOException {
         final SocketChannel channel = (SocketChannel) key.channel();
 
-        final List<ByteBuffer> queue = pendingData.get(channel);
+        final Queue<ByteBuffer> queue = pendingData.get(channel);
 
         // Write until there's no more data ...
         while (!queue.isEmpty()) {
-            final ByteBuffer buf = queue.get(0);
+            final ByteBuffer buf = queue.peek();
             channel.write(buf);
             if (buf.remaining() > 0) {
                 // ... or the channel's buffer fills up
                 break;
             }
-            queue.remove(0);
+            queue.remove();
         }
 
         if (queue.isEmpty()) {
@@ -167,10 +165,10 @@ public class TrustSocket implements Runnable {
         changeRequests.add(new ChangeRequest(channel, ChangeRequest.CHANGEOPS, SelectionKey.OP_WRITE));
 
         // And queue the data we want written
-        List<ByteBuffer> queue = pendingData.get(channel);
+        Queue<ByteBuffer> queue = pendingData.get(channel);
 
         if (queue == null) {
-            queue = new ArrayList<>();
+            queue = new ConcurrentLinkedQueue<>();
             pendingData.put(channel, queue);
         }
         queue.add(ByteBuffer.wrap(data));
