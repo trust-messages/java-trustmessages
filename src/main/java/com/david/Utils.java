@@ -20,6 +20,10 @@ public class Utils {
         return Base64.getDecoder().decode(in);
     }
 
+    public static String encode(byte[] in) {
+        return Base64.getEncoder().encodeToString(in);
+    }
+
     public static void main(String[] args) throws IOException {
         final AssessmentRequest ar = new AssessmentRequest(new BerInteger(1),
                 getQuery("source = david AND (service = seller OR service = letter) AND (target = balu OR target = aleks)"));
