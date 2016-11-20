@@ -2,6 +2,7 @@ package com.david;
 
 import com.david.format.QTM;
 import com.david.messages.*;
+import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
 import org.openmuc.jasn1.ber.types.BerAny;
 
 import java.io.IOException;
@@ -26,15 +27,16 @@ public class QTMDb extends InMemoryTrustDb {
                 t.target = new Entity(target.getBytes());
                 t.service = new Service(service.getBytes());
                 t.date = new BinaryTime(TIME.next());
-                final QTM v = new QTM(VALUES.next());
 
+                final QTM v = new QTM(VALUES.next());
+                final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(3, true);
                 try {
-                    v.encodeAndSave(34);
+                    v.encode(baos, true);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
-                t.value = new BerAny(v.code);
+                t.value = new BerAny(baos.getArray());
                 TRUST.add(t);
             }
         }
@@ -52,15 +54,16 @@ public class QTMDb extends InMemoryTrustDb {
                     a.target = new Entity(target.getBytes());
                     a.service = new Service(service.getBytes());
                     a.date = new BinaryTime(TIME.next());
-                    final QTM sl = new QTM(VALUES.next());
 
+                    final QTM v = new QTM(VALUES.next());
+                    final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(3, true);
                     try {
-                        sl.encodeAndSave(34);
+                        v.encode(baos, true);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
 
-                    a.value = new BerAny(sl.code);
+                    a.value = new BerAny(baos.getArray());
                     ASSESSMENTS.add(a);
                 }
             }

@@ -36,26 +36,54 @@ public class MessagesTest extends TestCase {
         m.decode(new ByteArrayInputStream(q), true);
     }
 
-    public void testQuantitativeAssessment() throws IOException {
-        final Assessment orig = new Assessment();
-        orig.tms = new SystemIdentity(new int[]{1, 1, 1});
-        orig.source = new Entity("me@me.com".getBytes());
-        orig.target = new Entity("you@you.com".getBytes());
-        orig.service = new Service("seller".getBytes());
-        orig.date = new BinaryTime(10);
-        final SL sl = new SL(new BerReal(0.1), new BerReal(0.2), new BerReal(0.7));
-        sl.encodeAndSave(34);
-        orig.value = new BerAny(sl.code);
+    public void testSL() throws IOException {
+        final SL orig = new SL(new BerReal(0.1), new BerReal(0.2), new BerReal(0.7));
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos, true);
-        orig.encodeAndSave(100);
+
+        final SL decoded = new SL();
+        decoded.decode(new ByteArrayInputStream(baos.getArray()), true);
+
+        assertEquals(orig.toString(), decoded.toString());
+        assertEquals(orig.b.value, decoded.b.value, 0.001);
+        assertEquals(orig.d.value, decoded.d.value, 0.001);
+        assertEquals(orig.u.value, decoded.u.value, 0.001);
+    }
+
+    public void testQTM() throws IOException {
+        final QTM orig = new QTM(1);
+
+        final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(3, true);
+        orig.encode(baos, true);
+
+        final QTM decoded = new QTM();
+        decoded.decode(new ByteArrayInputStream(baos.getArray()), true);
+
+        assertEquals(orig.value, decoded.value);
+    }
+
+    public void testQuantitativeAssessment() throws IOException {
+        final Assessment orig = new Assessment();
+        orig.tms = new SystemIdentity(new int[]{1, 1, 1});
+        orig.source = new Entity("alice".getBytes());
+        orig.target = new Entity("bob".getBytes());
+        orig.service = new Service("seller".getBytes());
+        orig.date = new BinaryTime(10);
+
+        final SL sl = new SL(new BerReal(0.1), new BerReal(0.2), new BerReal(0.7));
+        final BerByteArrayOutputStream osValue = new BerByteArrayOutputStream(32, true);
+        sl.encode(osValue, true);
+
+        orig.value = new BerAny(osValue.getArray());
+
+        final BerByteArrayOutputStream osMessage = new BerByteArrayOutputStream(100, true);
+        orig.encode(osMessage, true);
 
         final Assessment decoded = new Assessment();
-        decoded.decode(new ByteArrayInputStream(baos.getArray()), true);
-        decoded.encodeAndSave(100);
+        decoded.decode(new ByteArrayInputStream(osMessage.getArray()), true);
 
-        assertArrayEquals(orig.code, decoded.code);
+        assertEquals(orig.toString(), decoded.toString());
     }
 
     public void testQualitativeAssessmentFromPython() throws IOException {
@@ -67,23 +95,23 @@ public class MessagesTest extends TestCase {
     public void testQualitativeAssessment() throws IOException {
         final Assessment orig = new Assessment();
         orig.tms = new SystemIdentity(new int[]{1, 1, 1});
-        orig.source = new Entity("me@me.com".getBytes());
-        orig.target = new Entity("you@you.com".getBytes());
+        orig.source = new Entity("alice".getBytes());
+        orig.target = new Entity("bob".getBytes());
         orig.service = new Service("seller".getBytes());
         orig.date = new BinaryTime(10);
-        final QTM sl = new QTM(0);
-        sl.encodeAndSave(2);
-        orig.value = new BerAny(sl.code);
 
-        final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
-        orig.encode(baos, true);
-        orig.encodeAndSave(42);
+        final QTM qv = new QTM(0);
+        final BerByteArrayOutputStream osValue = new BerByteArrayOutputStream(3, true);
+        qv.encode(osValue, true);
+        orig.value = new BerAny(osValue.getArray());
+
+        final BerByteArrayOutputStream osMessage = new BerByteArrayOutputStream(32, true);
+        orig.encode(osMessage, true);
 
         final Assessment decoded = new Assessment();
-        decoded.decode(new ByteArrayInputStream(baos.getArray()), true);
-        decoded.encodeAndSave(42);
+        decoded.decode(new ByteArrayInputStream(osMessage.getArray()), true);
 
-        assertArrayEquals(orig.code, decoded.code);
+        assertEquals(orig.toString(), decoded.toString());
     }
 
     public void testAssessmentRequestFromPython() throws IOException {
@@ -100,13 +128,11 @@ public class MessagesTest extends TestCase {
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos, true);
-        orig.encodeAndSave(100);
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
-        decoded.encodeAndSave(100);
 
-        assertArrayEquals(orig.code, decoded.code);
+        assertEquals(orig.toString(), decoded.toString());
     }
 
     public void testAssessmentResponseFromPython() throws IOException {
@@ -124,13 +150,16 @@ public class MessagesTest extends TestCase {
         for (int i = 0; i < 2; i++) {
             final Assessment a = new Assessment();
             a.tms = new SystemIdentity(new int[]{1, 1, 1});
-            a.source = new Entity("me@me.com".getBytes());
+            a.source = new Entity("alice".getBytes());
             a.target = new Entity("you@you.com".getBytes());
             a.service = new Service("seller".getBytes());
             a.date = new BinaryTime(10);
-            final SL sl = new SL(new BerReal(0.1), new BerReal(0.2), new BerReal(0.7));
-            sl.encodeAndSave(34);
-            a.value = new BerAny(sl.code);
+
+            final QTM qv = new QTM(0);
+            final BerByteArrayOutputStream osValue = new BerByteArrayOutputStream(3, true);
+            qv.encode(osValue, true);
+            a.value = new BerAny(osValue.getArray());
+
             ar.response.seqOf.add(a);
         }
 
@@ -138,13 +167,11 @@ public class MessagesTest extends TestCase {
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos, true);
-        orig.encodeAndSave(200);
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
-        decoded.encodeAndSave(200);
 
-        assertArrayEquals(orig.code, decoded.code);
+        assertEquals(orig.toString(), decoded.toString());
     }
 
     public void testTrustRequestFromPython() throws IOException {
@@ -161,13 +188,11 @@ public class MessagesTest extends TestCase {
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos, true);
-        orig.encodeAndSave(100);
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
-        decoded.encodeAndSave(100);
 
-        assertArrayEquals(orig.code, decoded.code);
+        assertEquals(orig.toString(), decoded.toString());
     }
 
     public void testTrustResponseFromPython() throws IOException {
@@ -185,12 +210,15 @@ public class MessagesTest extends TestCase {
         for (int i = 0; i < 2; i++) {
             final Trust t = new Trust();
             t.tms = new SystemIdentity(new int[]{1, 1, 1});
-            t.target = new Entity("you@you.com".getBytes());
+            t.target = new Entity("alice".getBytes());
             t.service = new Service("seller".getBytes());
             t.date = new BinaryTime(10);
-            final SL sl = new SL(new BerReal(0.1), new BerReal(0.2), new BerReal(0.7));
-            sl.encodeAndSave(34);
-            t.value = new BerAny(sl.code);
+
+            final QTM qv = new QTM(0);
+            final BerByteArrayOutputStream osValue = new BerByteArrayOutputStream(3, true);
+            qv.encode(osValue, true);
+            t.value = new BerAny(osValue.getArray());
+
             tr.response.seqOf.add(t);
         }
 
@@ -198,13 +226,11 @@ public class MessagesTest extends TestCase {
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos, true);
-        orig.encodeAndSave(200);
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
-        decoded.encodeAndSave(200);
 
-        assertArrayEquals(orig.code, decoded.code);
+        assertEquals(orig.toString(), decoded.toString());
     }
 
     public void testFormatRequestFromPython() throws IOException {
@@ -217,13 +243,11 @@ public class MessagesTest extends TestCase {
         final Message orig = new Message(null, null, null, null, new FormatRequest(), null, null);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(10, true);
         orig.encode(baos, true);
-        orig.encodeAndSave(10);
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
-        decoded.encodeAndSave(10);
 
-        assertArrayEquals(orig.code, decoded.code);
+        assertEquals(orig.toString(), decoded.toString());
     }
 
     public void testFormatResponseFromPython() throws IOException {
@@ -240,12 +264,10 @@ public class MessagesTest extends TestCase {
         final Message orig = new Message(null, null, null, null, null, fr, null);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos, true);
-        orig.encodeAndSave(100);
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
-        decoded.encodeAndSave(100);
-        assertArrayEquals(orig.code, decoded.code);
+        assertEquals(orig.toString(), decoded.toString());
     }
 
     public void testFaultFromPython() throws IOException {
@@ -261,11 +283,9 @@ public class MessagesTest extends TestCase {
         final Message orig = new Message(null, null, null, null, null, null, f);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos, true);
-        orig.encodeAndSave(100);
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
-        decoded.encodeAndSave(100);
-        assertArrayEquals(orig.code, decoded.code);
+        assertEquals(orig.toString(), decoded.toString());
     }
 }

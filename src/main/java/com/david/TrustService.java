@@ -43,14 +43,9 @@ class TrustService implements Runnable {
                         ar.response.seqOf = db.getAssessments(req.assessmentRequest.query);
 
                         final Message res = new Message(null, ar, null, null, null, null, null);
-
                         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
                         res.encode(baos, true);
-                        res.encodeAndSave(512);
-
-                        System.out.println(Utils.encode(res.code));
-
-                        request.trustSocket.send(request.socketChannel, res.code);
+                        request.trustSocket.send(request.socketChannel, baos.getArray());
                     } else {
                         throw new IOException();
                     }
