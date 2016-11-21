@@ -33,9 +33,8 @@ public class DbTest extends TestCase {
             assertTrue(t.service.toString().equals("seller") || t.service.toString().equals("buyer"));
             assertTrue(t.target.toString().equals("david"));
 
-            final QTM decoded = new QTM();
             try {
-                decoded.decode(new ByteArrayInputStream(t.value.value), false);
+                new QTM().decode(new ByteArrayInputStream(t.value.value), true);
             } catch (IOException e) {
                 fail("Exception: " + e.getMessage());
             }
@@ -51,9 +50,8 @@ public class DbTest extends TestCase {
             assertTrue(t.service.toString().equals("seller") || t.service.toString().equals("buyer"));
             assertTrue(t.target.toString().equals("david") || t.target.toString().equals("alice"));
 
-            final QTM decoded = new QTM();
             try {
-                decoded.decode(new ByteArrayInputStream(t.value.value), false);
+                new QTM().decode(new ByteArrayInputStream(t.value.value), true);
             } catch (IOException e) {
                 fail("Exception: " + e.getMessage());
             }
@@ -69,9 +67,8 @@ public class DbTest extends TestCase {
             assertTrue(t.service.toString().equals("seller") || t.service.toString().equals("buyer"));
             assertTrue(t.target.toString().equals("david"));
 
-            final SL decoded = new SL();
             try {
-                decoded.decode(new ByteArrayInputStream(t.value.value), false);
+                new SL().decode(new ByteArrayInputStream(t.value.value), false);
             } catch (IOException e) {
                 fail("Exception: " + e.getMessage());
             }
@@ -87,9 +84,8 @@ public class DbTest extends TestCase {
             assertTrue(t.service.toString().equals("seller") || t.service.toString().equals("buyer"));
             assertTrue(t.target.toString().equals("david") || t.target.toString().equals("alice"));
 
-            final SL decoded = new SL();
             try {
-                decoded.decode(new ByteArrayInputStream(t.value.value), false);
+                new SL().decode(new ByteArrayInputStream(t.value.value), false);
             } catch (IOException e) {
                 fail("Exception: " + e.getMessage());
             }

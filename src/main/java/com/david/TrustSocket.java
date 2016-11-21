@@ -139,6 +139,9 @@ public class TrustSocket implements Runnable {
         final SocketChannel socket = serverSocketChannel.accept();
         socket.configureBlocking(false);
 
+        // Create an outgoing message queue for this socket
+        pendingData.put(socket, new ConcurrentLinkedQueue<>());
+
         System.out.printf("[%s]: <CONNECTED>%n",
                 socket.socket().getRemoteSocketAddress());
 
@@ -148,18 +151,12 @@ public class TrustSocket implements Runnable {
     }
 
     public void send(SocketChannel channel, byte[] data) {
-        // XXX: Other threads may call this method.
+        // This method will be called from different threads
         // Indicate we want the interest ops set changed
         changeRequests.add(new ChangeRequest(channel, ChangeRequest.CHANGEOPS, SelectionKey.OP_WRITE));
 
-        // And queue the data we want written
-        Queue<ByteBuffer> queue = pendingData.get(channel);
-
-        if (queue == null) {
-            queue = new ConcurrentLinkedQueue<>();
-            pendingData.put(channel, queue);
-        }
-        queue.add(ByteBuffer.wrap(data));
+        // Get queue for the outgoing channel and add data to it
+        pendingData.get(channel).add(ByteBuffer.wrap(data));
 
         // Finally, wake up our selecting thread so it can make the required changes
         selector.wakeup();
