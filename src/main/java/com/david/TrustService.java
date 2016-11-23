@@ -6,22 +6,21 @@ import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 class TrustService implements Runnable {
-    private final BlockingQueue<TrustSocketRequest> queue = new LinkedBlockingQueue<>();
+    private TrustSocket socket;
+    private final BlockingQueue<TrustSocket.TrustSocketRequest> queue = new LinkedBlockingQueue<>();
     private final QTMDb db = new QTMDb();
 
-    void enqueueRequest(TrustSocket server, SocketChannel channel, byte[] data, int count) {
-        // Called from other threads
-        final byte[] copy = new byte[count];
-        System.arraycopy(data, 0, copy, 0, count);
+    public void setSocket(TrustSocket socket) {
+        this.socket = socket;
+    }
 
+    void enqueueRequest(final TrustSocket.TrustSocketRequest request) {
         try {
-            queue.put(new TrustSocketRequest(server, channel, copy));
+            queue.put(request);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -30,7 +29,7 @@ class TrustService implements Runnable {
     public void run() {
         while (!Thread.interrupted()) {
             try {
-                final TrustSocketRequest request = queue.take();
+                final TrustSocket.TrustSocketRequest request = queue.take();
 
                 // provisional test
                 try {
@@ -47,11 +46,8 @@ class TrustService implements Runnable {
                         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
                         res.encode(baos, true);
 
-                        final InetSocketAddress peerAddress = (InetSocketAddress)
-                                request.socketChannel.getRemoteAddress();
-
-                        request.trustSocket.send(peerAddress.getAddress(),
-                                peerAddress.getPort(), baos.getArray());
+                        socket.send(request.remoteAddress.getAddress(),
+                                request.remoteAddress.getPort(), baos.getArray());
                     } else {
                         throw new IOException();
                     }
@@ -61,6 +57,7 @@ class TrustService implements Runnable {
                 }
 
             } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }

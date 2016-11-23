@@ -6,14 +6,23 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
+import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
 public class TrustSocket implements Runnable {
-    public final InetAddress hostAddress;
+    static class TrustSocketRequest {
+        final InetSocketAddress remoteAddress;
+        final byte[] data;
+
+        TrustSocketRequest(InetSocketAddress remoteAddress, byte[] data) {
+            this.remoteAddress = remoteAddress;
+            this.data = data;
+        }
+    }
+
     public final int port;
 
     private final Selector selector = SelectorProvider.provider().openSelector();
@@ -24,10 +33,9 @@ public class TrustSocket implements Runnable {
 
     private final TrustService service;
 
-    private final ConcurrentMap<SocketChannel, Queue<ByteBuffer>> outgoingQueues = new ConcurrentHashMap<>();
+    private final ConcurrentMap<SocketChannel, Queue<ByteBuffer>> outQueues = new ConcurrentHashMap<>();
 
-    public TrustSocket(InetAddress hostAddress, int port, TrustService service) throws IOException {
-        this.hostAddress = hostAddress;
+    public TrustSocket(int port, TrustService service) throws IOException {
         this.port = port;
         this.service = service;
 
@@ -39,7 +47,7 @@ public class TrustSocket implements Runnable {
 
         final ServerSocketChannel serverChannel = ServerSocketChannel.open();
         serverChannel.configureBlocking(false);
-        serverChannel.socket().bind(new InetSocketAddress(hostAddress, port));
+        serverChannel.socket().bind(new InetSocketAddress((InetAddress) null, port));
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
     }
 
@@ -60,43 +68,18 @@ public class TrustSocket implements Runnable {
                     }
 
                     if (key.isAcceptable()) {
+                        // new connection
                         accept(key);
                     } else if (key.isReadable()) {
-                        if (key.channel().equals(source)) {
-                            // read the data
-                            final int numRead;
-                            try {
-                                readBuffer.clear();
-                                numRead = source.read(readBuffer);
-                                if (numRead == -1) {
-                                    throw new Error("Pipe failure: read returned -1");
-                                }
-                            } catch (IOException e) {
-                                throw new Error("Pipe failure.", e);
-                            }
-
-                            // get address and port
-                            readBuffer.flip();
-                            final byte[] addrBytes = new byte[4];
-                            readBuffer.get(addrBytes);
-                            final InetAddress address = InetAddress.getByAddress(addrBytes);
-                            final int port = readBuffer.getInt();
-
-                            // copy data into new buffer
-                            final byte[] data = new byte[numRead - 8];
-                            System.arraycopy(readBuffer.array(), 8, data, 0, numRead - 8);
-
-                            // enqueue the data
-                            final SocketChannel channel = getSocket(address, port);
-                            outgoingQueues.get(channel).add(ByteBuffer.wrap(data));
-
-                            // make the target channel signal when ready for writing
-                            final SelectionKey chanKey = channel.keyFor(selector);
-                            chanKey.interestOps(SelectionKey.OP_WRITE);
+                        if (source == key.channel()) {
+                            // receive outgoing data from the pipe and enqueue it for sending
+                            enqueueOutgoing();
                         } else {
+                            // read the data from a network socket
                             read(key);
                         }
                     } else if (key.isWritable()) {
+                        // write to socket
                         write(key);
                     }
                 }
@@ -106,8 +89,42 @@ public class TrustSocket implements Runnable {
         }
     }
 
+    private void enqueueOutgoing() throws IOException {
+        // read the data
+        final int numRead;
+        try {
+            readBuffer.clear();
+            numRead = source.read(readBuffer);
+            if (numRead == -1) {
+                throw new Error("Pipe failure: read returned -1");
+            }
+        } catch (IOException e) {
+            throw new Error("Pipe failure.", e);
+        }
+
+        // get remoteAddress and port
+        readBuffer.flip();
+        final byte[] addrBytes = new byte[4];
+        readBuffer.get(addrBytes);
+        final InetAddress address = InetAddress.getByAddress(addrBytes);
+        final int port = readBuffer.getInt();
+
+        // copy data into new buffer
+        final byte[] data = new byte[numRead - 8];
+        System.arraycopy(readBuffer.array(), 8, data, 0, numRead - 8);
+        readBuffer.clear();
+
+        // enqueue the data to the outgoing channel
+        final SocketChannel channel = getSocket(address, port);
+        outQueues.get(channel).add(ByteBuffer.wrap(data));
+
+        // make the target channel signal when ready for writing
+        final SelectionKey chanKey = channel.keyFor(selector);
+        chanKey.interestOps(SelectionKey.OP_WRITE);
+    }
+
     private SocketChannel getSocket(InetAddress hostname, int port) throws IOException {
-        for (SocketChannel sc : outgoingQueues.keySet()) {
+        for (SocketChannel sc : outQueues.keySet()) {
             final InetSocketAddress address = (InetSocketAddress) sc.getRemoteAddress();
 
             if (hostname.equals(address.getAddress()) && port == address.getPort()) {
@@ -124,28 +141,27 @@ public class TrustSocket implements Runnable {
                 .putInt(port)
                 .put(data);
         buff.flip();
-
         sink.write(buff);
     }
 
     private void write(SelectionKey key) throws IOException {
         final SocketChannel channel = (SocketChannel) key.channel();
 
-        final Queue<ByteBuffer> queue = outgoingQueues.get(channel);
+        final Queue<ByteBuffer> queue = outQueues.get(channel);
 
-        // Write until there's no more data ...
+        // write everything
         while (!queue.isEmpty()) {
             final ByteBuffer buf = queue.peek();
             channel.write(buf);
             if (buf.remaining() > 0) {
-                // ... or the socketChannel's buffer fills up
+                // stop if the socket's buffer fills up
                 break;
             }
             queue.remove();
         }
 
         if (queue.isEmpty()) {
-            // Write completed; switch back to read events
+            // stop listening to write-ready events
             key.interestOps(SelectionKey.OP_READ);
         }
     }
@@ -153,56 +169,69 @@ public class TrustSocket implements Runnable {
     private void read(SelectionKey key) throws IOException {
         final SocketChannel channel = (SocketChannel) key.channel();
 
-        // Clear out our read buffer so it's ready for new data
+        // clear the read buffer
         readBuffer.clear();
 
-        // Attempt to read off the socketChannel
+        // read off the channel
         final int numRead;
         try {
             numRead = channel.read(readBuffer);
         } catch (IOException e) {
-            // Forced shutdown (by remote)
-            key.cancel();
-            channel.close();
+            // unexpected shutdown
+            disconnectSocket(key);
             return;
         }
 
         if (numRead == -1) {
-            // Clean shutdown (by remote)
-            key.channel().close();
-            key.cancel();
+            // clean shutdown
+            disconnectSocket(key);
             return;
         }
 
-        // Hand the data off to our service thread
+        // hand the data to the service thread
         final byte[] data = new byte[numRead];
         System.arraycopy(readBuffer.array(), 0, data, 0, numRead);
-        service.enqueueRequest(this, channel, data, numRead);
+        service.enqueueRequest(new TrustSocketRequest((InetSocketAddress) channel.getRemoteAddress(), data));
     }
 
+    private void disconnectSocket(SelectionKey key) throws IOException {
+        final SocketChannel channel = (SocketChannel) key.channel();
+        outQueues.remove(channel);
+        channel.close();
+        key.cancel();
+    }
+
+    /**
+     * Accepts a new connection, creates a new outgoing queue and registers the selector
+     * to notify for new data.
+     *
+     * @param key
+     * @throws IOException
+     */
     private void accept(SelectionKey key) throws IOException {
         final ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
 
-        // Accept the connection and make it non-blocking
+        // accept the connection and make it non-blocking
         final SocketChannel socket = serverSocketChannel.accept();
         socket.configureBlocking(false);
 
-        // Create an outgoing message queue for this socket
-        outgoingQueues.put(socket, new ConcurrentLinkedQueue<>());
+        // create an outgoing message queue for this socket
+        outQueues.put(socket, new ArrayDeque<>());
 
-        System.out.printf("[%s]: <CONNECTED>%n",
-                socket.socket().getRemoteSocketAddress());
-
-        // Register the new SocketChannel with our Selector, indicating
-        // we'd like to be notified when there's data waiting to be read
+        // notify when there's data to be read
         socket.register(selector, SelectionKey.OP_READ);
+
+        System.out.printf("[%s]: <CONNECTED>%n", socket.socket().getRemoteSocketAddress());
     }
 
     public static void main(String[] args) {
         try {
-            final TrustService worker = new TrustService();
-            new Thread(worker).start();
-            new Thread(new TrustSocket(null, 6000, worker)).start();
+            final TrustService service = new TrustService();
+            final TrustSocket socket = new TrustSocket(6000, service);
+            service.setSocket(socket);
+
+            new Thread(service).start();
+            new Thread(socket).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
