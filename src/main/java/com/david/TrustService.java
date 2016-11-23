@@ -6,6 +6,7 @@ import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -45,13 +46,18 @@ class TrustService implements Runnable {
                         final Message res = new Message(null, ar, null, null, null, null, null);
                         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
                         res.encode(baos, true);
-                        request.trustSocket.send(request.socketChannel, baos.getArray());
+
+                        final InetSocketAddress peerAddress = (InetSocketAddress)
+                                request.socketChannel.getRemoteAddress();
+
+                        request.trustSocket.send(peerAddress.getAddress(),
+                                peerAddress.getPort(), baos.getArray());
                     } else {
                         throw new IOException();
                     }
                 } catch (IOException e) {
-                    System.out.println("Could not respond properly, echoing ...");
-                    request.trustSocket.send(request.socketChannel, request.data);
+                    System.out.printf("Could not respond properly: %s", e.getMessage());
+                    e.printStackTrace();
                 }
 
             } catch (InterruptedException e) {

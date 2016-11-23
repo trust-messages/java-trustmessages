@@ -4,10 +4,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
 import java.util.Queue;
@@ -20,17 +17,25 @@ public class TrustSocket implements Runnable {
     public final int port;
 
     private final Selector selector = SelectorProvider.provider().openSelector();
+    private final Pipe pipe;
+    private final Pipe.SourceChannel source;
+    private final Pipe.SinkChannel sink;
     private final ByteBuffer readBuffer = ByteBuffer.allocate(8192);
 
     private final TrustService service;
 
-    private final Queue<ChangeRequest> changeRequests = new ConcurrentLinkedQueue<>();
-    private final ConcurrentMap<SocketChannel, Queue<ByteBuffer>> pendingData = new ConcurrentHashMap<>();
+    private final ConcurrentMap<SocketChannel, Queue<ByteBuffer>> outgoingQueues = new ConcurrentHashMap<>();
 
     public TrustSocket(InetAddress hostAddress, int port, TrustService service) throws IOException {
         this.hostAddress = hostAddress;
         this.port = port;
         this.service = service;
+
+        this.pipe = Pipe.open();
+        this.sink = pipe.sink();
+        this.source = pipe.source();
+        this.source.configureBlocking(false);
+        source.register(selector, SelectionKey.OP_READ);
 
         final ServerSocketChannel serverChannel = ServerSocketChannel.open();
         serverChannel.configureBlocking(false);
@@ -42,19 +47,8 @@ public class TrustSocket implements Runnable {
     public void run() {
         while (!Thread.interrupted()) {
             try {
-                // Process any pending changes
-                for (ChangeRequest change : changeRequests) {
-                    switch (change.type) {
-                        case ChangeRequest.CHANGEOPS:
-                            final SelectionKey key = change.socket.keyFor(selector);
-                            key.interestOps(change.ops);
-                            break;
-                    }
-                }
-
-                changeRequests.clear();
-
                 selector.select();
+
                 final Iterator selectedKeys = selector.selectedKeys().iterator();
 
                 while (selectedKeys.hasNext()) {
@@ -68,7 +62,40 @@ public class TrustSocket implements Runnable {
                     if (key.isAcceptable()) {
                         accept(key);
                     } else if (key.isReadable()) {
-                        read(key);
+                        if (key.channel().equals(source)) {
+                            // read the data
+                            final int numRead;
+                            try {
+                                readBuffer.clear();
+                                numRead = source.read(readBuffer);
+                                if (numRead == -1) {
+                                    throw new Error("Pipe failure: read returned -1");
+                                }
+                            } catch (IOException e) {
+                                throw new Error("Pipe failure.", e);
+                            }
+
+                            // get address and port
+                            readBuffer.flip();
+                            final byte[] addrBytes = new byte[4];
+                            readBuffer.get(addrBytes);
+                            final InetAddress address = InetAddress.getByAddress(addrBytes);
+                            final int port = readBuffer.getInt();
+
+                            // copy data into new buffer
+                            final byte[] data = new byte[numRead - 8];
+                            System.arraycopy(readBuffer.array(), 8, data, 0, numRead - 8);
+
+                            // enqueue the data
+                            final SocketChannel channel = getSocket(address, port);
+                            outgoingQueues.get(channel).add(ByteBuffer.wrap(data));
+
+                            // make the target channel signal when ready for writing
+                            final SelectionKey chanKey = channel.keyFor(selector);
+                            chanKey.interestOps(SelectionKey.OP_WRITE);
+                        } else {
+                            read(key);
+                        }
                     } else if (key.isWritable()) {
                         write(key);
                     }
@@ -79,10 +106,32 @@ public class TrustSocket implements Runnable {
         }
     }
 
+    private SocketChannel getSocket(InetAddress hostname, int port) throws IOException {
+        for (SocketChannel sc : outgoingQueues.keySet()) {
+            final InetSocketAddress address = (InetSocketAddress) sc.getRemoteAddress();
+
+            if (hostname.equals(address.getAddress()) && port == address.getPort()) {
+                return sc;
+            }
+        }
+
+        throw new IllegalArgumentException("No socket for: " + hostname.getHostAddress() + ":" + port);
+    }
+
+    public synchronized void send(InetAddress address, int port, byte[] data) throws IOException {
+        final ByteBuffer buff = ByteBuffer.allocate(data.length + 8)
+                .put(address.getAddress())
+                .putInt(port)
+                .put(data);
+        buff.flip();
+
+        sink.write(buff);
+    }
+
     private void write(SelectionKey key) throws IOException {
         final SocketChannel channel = (SocketChannel) key.channel();
 
-        final Queue<ByteBuffer> queue = pendingData.get(channel);
+        final Queue<ByteBuffer> queue = outgoingQueues.get(channel);
 
         // Write until there's no more data ...
         while (!queue.isEmpty()) {
@@ -105,7 +154,7 @@ public class TrustSocket implements Runnable {
         final SocketChannel channel = (SocketChannel) key.channel();
 
         // Clear out our read buffer so it's ready for new data
-        this.readBuffer.clear();
+        readBuffer.clear();
 
         // Attempt to read off the socketChannel
         final int numRead;
@@ -132,7 +181,6 @@ public class TrustSocket implements Runnable {
     }
 
     private void accept(SelectionKey key) throws IOException {
-        // For an accept to be pending the socketChannel must be a trustSocket socketChannel socketChannel.
         final ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
 
         // Accept the connection and make it non-blocking
@@ -140,7 +188,7 @@ public class TrustSocket implements Runnable {
         socket.configureBlocking(false);
 
         // Create an outgoing message queue for this socket
-        pendingData.put(socket, new ConcurrentLinkedQueue<>());
+        outgoingQueues.put(socket, new ConcurrentLinkedQueue<>());
 
         System.out.printf("[%s]: <CONNECTED>%n",
                 socket.socket().getRemoteSocketAddress());
@@ -148,18 +196,6 @@ public class TrustSocket implements Runnable {
         // Register the new SocketChannel with our Selector, indicating
         // we'd like to be notified when there's data waiting to be read
         socket.register(selector, SelectionKey.OP_READ);
-    }
-
-    public void send(SocketChannel channel, byte[] data) {
-        // This method will be called from different threads
-        // Indicate we want the interest ops set changed
-        changeRequests.add(new ChangeRequest(channel, ChangeRequest.CHANGEOPS, SelectionKey.OP_WRITE));
-
-        // Get queue for the outgoing channel and add data to it
-        pendingData.get(channel).add(ByteBuffer.wrap(data));
-
-        // Finally, wake up our selecting thread so it can make the required changes
-        selector.wakeup();
     }
 
     public static void main(String[] args) {
