@@ -6,21 +6,30 @@ import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-class TrustService implements Runnable {
-    private TrustSocket socket;
-    private final BlockingQueue<TrustSocket.TrustSocketRequest> queue = new LinkedBlockingQueue<>();
-    private final QTMDb db = new QTMDb();
+class TrustService implements Runnable, IncomingDataHandler {
+    class IncomingData {
+        final TrustSocket socket;
+        final InetSocketAddress sender;
+        final byte[] data;
 
-    public void setSocket(TrustSocket socket) {
-        this.socket = socket;
+        IncomingData(TrustSocket socket, InetSocketAddress sender, byte[] data) {
+            this.socket = socket;
+            this.sender = sender;
+            this.data = data;
+        }
     }
 
-    void enqueueRequest(final TrustSocket.TrustSocketRequest request) {
+    private final BlockingQueue<IncomingData> queue = new LinkedBlockingQueue<>();
+    private final QTMDb db = new QTMDb();
+
+    @Override
+    public void handle(TrustSocket socket, InetSocketAddress remoteAddress, byte[] data) {
         try {
-            queue.put(request);
+            queue.put(new IncomingData(socket, remoteAddress, data));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -29,7 +38,7 @@ class TrustService implements Runnable {
     public void run() {
         while (!Thread.interrupted()) {
             try {
-                final TrustSocket.TrustSocketRequest request = queue.take();
+                final IncomingData request = queue.take();
 
                 // provisional test
                 try {
@@ -46,8 +55,8 @@ class TrustService implements Runnable {
                         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
                         res.encode(baos, true);
 
-                        socket.send(request.remoteAddress.getAddress(),
-                                request.remoteAddress.getPort(), baos.getArray());
+                        request.socket.send(request.sender.getAddress(),
+                                request.sender.getPort(), baos.getArray());
                     } else {
                         throw new IOException();
                     }

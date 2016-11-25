@@ -13,16 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class TrustSocket implements Runnable {
-    static class TrustSocketRequest {
-        final InetSocketAddress remoteAddress;
-        final byte[] data;
-
-        TrustSocketRequest(InetSocketAddress remoteAddress, byte[] data) {
-            this.remoteAddress = remoteAddress;
-            this.data = data;
-        }
-    }
-
     public final int port;
 
     private final Selector selector = SelectorProvider.provider().openSelector();
@@ -31,11 +21,11 @@ public class TrustSocket implements Runnable {
     private final Pipe.SinkChannel sink;
     private final ByteBuffer readBuffer = ByteBuffer.allocate(8192);
 
-    private final TrustService service;
+    private final IncomingDataHandler service;
 
     private final ConcurrentMap<SocketChannel, Queue<ByteBuffer>> outQueues = new ConcurrentHashMap<>();
 
-    public TrustSocket(int port, TrustService service) throws IOException {
+    public TrustSocket(int port, IncomingDataHandler service) throws IOException {
         this.port = port;
         this.service = service;
 
@@ -102,7 +92,7 @@ public class TrustSocket implements Runnable {
             throw new Error("Pipe failure.", e);
         }
 
-        // get remoteAddress and port
+        // get sender and port
         readBuffer.flip();
         final byte[] addrBytes = new byte[4];
         readBuffer.get(addrBytes);
@@ -191,14 +181,18 @@ public class TrustSocket implements Runnable {
         // hand the data to the service thread
         final byte[] data = new byte[numRead];
         System.arraycopy(readBuffer.array(), 0, data, 0, numRead);
-        service.enqueueRequest(new TrustSocketRequest((InetSocketAddress) channel.getRemoteAddress(), data));
+
+        service.handle(this, (InetSocketAddress) channel.getRemoteAddress(), data);
     }
 
     private void disconnectSocket(SelectionKey key) throws IOException {
         final SocketChannel channel = (SocketChannel) key.channel();
+        final String address = channel.getRemoteAddress().toString();
         outQueues.remove(channel);
         channel.close();
         key.cancel();
+
+        System.out.printf("[%s]: <DISCONNECTED>%n", address);
     }
 
     /**
@@ -225,11 +219,9 @@ public class TrustSocket implements Runnable {
     }
 
     public static void main(String[] args) {
+        final TrustService service = new TrustService();
         try {
-            final TrustService service = new TrustService();
             final TrustSocket socket = new TrustSocket(6000, service);
-            service.setSocket(socket);
-
             new Thread(service).start();
             new Thread(socket).start();
         } catch (IOException e) {
