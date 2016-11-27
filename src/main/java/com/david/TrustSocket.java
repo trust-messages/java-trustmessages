@@ -6,42 +6,37 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
-import java.util.ArrayDeque;
-import java.util.Iterator;
-import java.util.Queue;
-import java.util.concurrent.*;
+import java.util.*;
 
 public class TrustSocket implements Runnable {
-    public final int port;
 
     private final Selector selector;
-    private final Pipe pipe;
+    private final ServerSocketChannel server;
     private final Pipe.SourceChannel source;
     private final Pipe.SinkChannel sink;
     private final ByteBuffer readBuffer = ByteBuffer.allocate(8192);
 
     private final IncomingDataHandler service;
 
-    private final ConcurrentMap<SocketChannel, Queue<ByteBuffer>> outQueues = new ConcurrentHashMap<>();
+    private final Map<SocketChannel, Queue<ByteBuffer>> outQueues = new HashMap<>();
 
     public TrustSocket(int port, IncomingDataHandler service) {
-        this.port = port;
         this.service = service;
 
         try {
-            this.selector = SelectorProvider.provider().openSelector();
+            selector = SelectorProvider.provider().openSelector();
 
-            this.pipe = Pipe.open();
-            this.sink = pipe.sink();
+            final Pipe pipe = Pipe.open();
+            sink = pipe.sink();
 
-            this.source = pipe.source();
-            this.source.configureBlocking(false);
+            source = pipe.source();
+            source.configureBlocking(false);
             source.register(selector, SelectionKey.OP_READ);
 
-            final ServerSocketChannel serverChannel = ServerSocketChannel.open();
-            serverChannel.configureBlocking(false);
-            serverChannel.socket().bind(new InetSocketAddress((InetAddress) null, port));
-            serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+            server = ServerSocketChannel.open();
+            server.configureBlocking(false);
+            server.socket().bind(new InetSocketAddress((InetAddress) null, port));
+            server.register(selector, SelectionKey.OP_ACCEPT);
         } catch (IOException e) {
             throw new Error(e);
         }
@@ -224,13 +219,7 @@ public class TrustSocket implements Runnable {
         System.out.printf("[%s]: <CONNECTED>%n", socket.socket().getRemoteSocketAddress());
     }
 
-    public static void main(String[] args) throws InterruptedException {
-        final ExecutorService executor = Executors.newFixedThreadPool(2);
-        final TrustService service = new TrustService();
-        final TrustSocket socket = new TrustSocket(6000, service);
-
-        executor.submit(service);
-        executor.submit(socket);
-        executor.awaitTermination(365, TimeUnit.DAYS);
+    public InetSocketAddress getEndpoint() throws IOException {
+        return (InetSocketAddress) server.getLocalAddress();
     }
 }

@@ -12,6 +12,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
 import org.openmuc.jasn1.ber.types.BerInteger;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Base64;
 
@@ -44,5 +45,21 @@ public class Utils {
         final ParseTree tree = parser.expr();
         final Visitor v = new Visitor();
         return v.visit(tree);
+    }
+
+    public static byte[] encode(Message message) {
+        try {
+            final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
+            message.encode(baos, true);
+            return baos.getArray();
+        } catch (IOException e) {
+            throw new Error(e);
+        }
+    }
+
+    public static Message decode(byte[] bytes) throws IOException {
+        final Message message = new Message();
+        message.decode(new ByteArrayInputStream(bytes), null);
+        return message;
     }
 }

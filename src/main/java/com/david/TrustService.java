@@ -4,14 +4,15 @@ import com.david.messages.AssessmentResponse;
 import com.david.messages.FormatResponse;
 import com.david.messages.Message;
 import com.david.messages.TrustResponse;
-import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
 import org.openmuc.jasn1.ber.types.string.BerPrintableString;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import static com.david.Utils.decode;
+import static com.david.Utils.encode;
 
 class TrustService implements Runnable, IncomingDataHandler {
     private class IncomingData {
@@ -63,6 +64,12 @@ class TrustService implements Runnable, IncomingDataHandler {
                     fr.assessment = new BerPrintableString(db.getFormat().get("assessment").getBytes());
                     fr.trust = new BerPrintableString(db.getFormat().get("trust").getBytes());
                     response.formatResponse = fr;
+                } else if (request.trustResponse != null) {
+                    System.out.println(request);
+                } else if (request.assessmentResponse != null) {
+                    System.out.println(request);
+                } else if (request.formatResponse != null) {
+                    System.out.println(request);
                 } else {
                     throw new IOException("Unknown message: " + request);
                 }
@@ -75,21 +82,5 @@ class TrustService implements Runnable, IncomingDataHandler {
                 e.printStackTrace();
             }
         }
-    }
-
-    public byte[] encode(Message message) {
-        try {
-            final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
-            message.encode(baos, true);
-            return baos.getArray();
-        } catch (IOException e) {
-            throw new Error(e);
-        }
-    }
-
-    public Message decode(byte[] bytes) throws IOException {
-        final Message message = new Message();
-        message.decode(new ByteArrayInputStream(bytes), null);
-        return message;
     }
 }
