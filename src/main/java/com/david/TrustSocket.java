@@ -1,5 +1,8 @@
 package com.david;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -9,6 +12,7 @@ import java.nio.channels.spi.SelectorProvider;
 import java.util.*;
 
 public class TrustSocket implements Runnable {
+    private final static Logger LOG = LoggerFactory.getLogger(TrustSocket.class);
 
     private final Selector selector;
     private final ServerSocketChannel server;
@@ -46,6 +50,7 @@ public class TrustSocket implements Runnable {
     public void run() {
         while (!Thread.interrupted()) {
             try {
+                LOG.debug("Waiting ...");
                 selector.select();
 
                 final Iterator selectedKeys = selector.selectedKeys().iterator();
@@ -55,33 +60,32 @@ public class TrustSocket implements Runnable {
                     selectedKeys.remove();
 
                     if (!key.isValid()) {
+                        LOG.warn("Invalid key: {} ", key);
                         continue;
                     }
 
                     if (key.isAcceptable()) {
-                        // new connection
-                        accept(key);
+                        accept(key); // new connection
                     } else if (key.isReadable()) {
                         if (source == key.channel()) {
-                            // receive outgoing data from the pipe and enqueue it for sending
-                            enqueueOutgoing();
+                            enqueueOutgoing(); // receive data from the pipe and enqueue it for sending
                         } else {
-                            // read the data from a network socket
-                            read(key);
+                            read(key); // read the data from a network socket
                         }
                     } else if (key.isWritable()) {
-                        // write to socket
-                        write(key);
+                        write(key); // write to socket
                     }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (IOException e) {
+                LOG.warn("Exception", e);
             }
         }
     }
 
     private void enqueueOutgoing() throws IOException {
-        // read the data
+        // FIX BUG: it can happen that the pipe enqueues two messages in succession;
+        // as it is currently implemented, the socket will process them as a single message
+        // solution: prefix the message with its size and do processing on discrete messages
         final int numRead;
         try {
             readBuffer.clear();
@@ -89,15 +93,15 @@ public class TrustSocket implements Runnable {
             if (numRead == -1) {
                 throw new Error("Pipe failure: read returned -1");
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new Error("Pipe failure.", e);
         }
 
         // get sender and port
         readBuffer.flip();
-        final byte[] addrBytes = new byte[4];
-        readBuffer.get(addrBytes);
-        final InetAddress address = InetAddress.getByAddress(addrBytes);
+        final byte[] addressBytes = new byte[4];
+        readBuffer.get(addressBytes);
+        final InetAddress address = InetAddress.getByAddress(addressBytes);
         final int port = readBuffer.getInt();
 
         // copy data into new buffer
@@ -112,6 +116,8 @@ public class TrustSocket implements Runnable {
         // make the target channel signal when ready for writing
         final SelectionKey chanKey = channel.keyFor(selector);
         chanKey.interestOps(SelectionKey.OP_WRITE);
+
+        LOG.info("[{}] Enqueued {} bytes (minus 8)", channel.getRemoteAddress(), numRead);
     }
 
     private SocketChannel getSocket(InetAddress hostname, int port) throws IOException {
@@ -137,15 +143,16 @@ public class TrustSocket implements Runnable {
 
     private void write(SelectionKey key) throws IOException {
         final SocketChannel channel = (SocketChannel) key.channel();
-
         final Queue<ByteBuffer> queue = outQueues.get(channel);
+        LOG.debug("Flushing {} to {}", queue, channel);
 
         // write everything
+        int numBytes = 0;
         while (!queue.isEmpty()) {
             final ByteBuffer buf = queue.peek();
-            channel.write(buf);
+            numBytes += channel.write(buf);
             if (buf.remaining() > 0) {
-                // stop if the socket's buffer fills up
+                LOG.warn("[{}] Flushed {} bytes. Output buffer is full. Delaying write.", channel.getRemoteAddress(), numBytes);
                 break;
             }
             queue.remove();
@@ -153,28 +160,29 @@ public class TrustSocket implements Runnable {
 
         if (queue.isEmpty()) {
             // stop listening to write-ready events
+            LOG.info("[{}] Flushed the entire queue ({} bytes)", channel.getRemoteAddress(), numBytes);
             key.interestOps(SelectionKey.OP_READ);
         }
     }
 
     private void read(SelectionKey key) throws IOException {
         final SocketChannel channel = (SocketChannel) key.channel();
+        LOG.debug("[{}] Reading ...", channel.getRemoteAddress());
 
-        // clear the read buffer
         readBuffer.clear();
-
-        // read off the channel
         final int numRead;
         try {
             numRead = channel.read(readBuffer);
         } catch (IOException e) {
             // unexpected shutdown
+            LOG.warn("[{}] Disconnected unexpectedly; closing.", channel.getRemoteAddress());
             disconnectSocket(key);
             return;
         }
 
         if (numRead == -1) {
             // clean shutdown
+            LOG.debug("[{}] Disconnected cleanly, closing {}", channel.getRemoteAddress());
             disconnectSocket(key);
             return;
         }
@@ -184,6 +192,7 @@ public class TrustSocket implements Runnable {
         System.arraycopy(readBuffer.array(), 0, data, 0, numRead);
 
         service.handle(this, (InetSocketAddress) channel.getRemoteAddress(), data);
+        LOG.info("[{}] Read {} bytes; passing to {}", channel.getRemoteAddress(), numRead, service);
     }
 
     private void disconnectSocket(SelectionKey key) throws IOException {
@@ -193,15 +202,16 @@ public class TrustSocket implements Runnable {
         channel.close();
         key.cancel();
 
-        System.out.printf("[%s]: <DISCONNECTED>%n", address);
+        LOG.debug("[SYS] Existing outQueues: {}", outQueues);
+        LOG.info("[{}] Disconnected", address);
     }
 
     /**
      * Accepts a new connection, creates a new outgoing queue and registers the selector
      * to notify for new data.
      *
-     * @param key
-     * @throws IOException
+     * @param key selected key
+     * @throws IOException when an I/O error occurs
      */
     private void accept(SelectionKey key) throws IOException {
         final ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
@@ -216,7 +226,8 @@ public class TrustSocket implements Runnable {
         // notify when there's data to be read
         socket.register(selector, SelectionKey.OP_READ);
 
-        System.out.printf("[%s]: <CONNECTED>%n", socket.socket().getRemoteSocketAddress());
+        LOG.debug("[SYS] outQueues: {}", outQueues);
+        LOG.info("[{}] Connected", socket.getRemoteAddress());
     }
 
     public InetSocketAddress getEndpoint() throws IOException {
