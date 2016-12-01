@@ -68,12 +68,12 @@ public class TrustSocket implements Runnable {
                         accept(key); // new connection
                     } else if (key.isReadable()) {
                         if (source == key.channel()) {
-                            enqueueOutgoing(); // receive data from the pipe and enqueue it for sending
+                            readFromPipe(); // read the data from the pipe and enqueue it for sending
                         } else {
-                            read(key); // read the data from a network socket
+                            readFromSocket(key); // read the data from a network socket and hand it to a worker
                         }
                     } else if (key.isWritable()) {
-                        write(key); // write to socket
+                        flushToSocket(key); // write to socket
                     }
                 }
             } catch (IOException e) {
@@ -82,7 +82,7 @@ public class TrustSocket implements Runnable {
         }
     }
 
-    private void enqueueOutgoing() throws IOException {
+    private void readFromPipe() throws IOException {
         // FIX BUG: it can happen that the pipe enqueues two messages in succession;
         // as it is currently implemented, the socket will process them as a single message
         // solution: prefix the message with its size and do processing on discrete messages
@@ -91,7 +91,7 @@ public class TrustSocket implements Runnable {
             readBuffer.clear();
             numRead = source.read(readBuffer);
             if (numRead == -1) {
-                throw new Error("Pipe failure: read returned -1");
+                throw new Error("Pipe failure: readFromSocket returned -1");
             }
         } catch (Exception e) {
             throw new Error("Pipe failure.", e);
@@ -141,7 +141,7 @@ public class TrustSocket implements Runnable {
         sink.write(buff);
     }
 
-    private void write(SelectionKey key) throws IOException {
+    private void flushToSocket(SelectionKey key) throws IOException {
         final SocketChannel channel = (SocketChannel) key.channel();
         final Queue<ByteBuffer> queue = outQueues.get(channel);
         LOG.debug("Flushing {} to {}", queue, channel);
@@ -152,7 +152,7 @@ public class TrustSocket implements Runnable {
             final ByteBuffer buf = queue.peek();
             numBytes += channel.write(buf);
             if (buf.remaining() > 0) {
-                LOG.warn("[{}] Flushed {} bytes. Output buffer is full. Delaying write.", channel.getRemoteAddress(), numBytes);
+                LOG.warn("[{}] Flushed {} bytes. Output buffer is full. Delaying.", channel.getRemoteAddress(), numBytes);
                 break;
             }
             queue.remove();
@@ -165,7 +165,7 @@ public class TrustSocket implements Runnable {
         }
     }
 
-    private void read(SelectionKey key) throws IOException {
+    private void readFromSocket(SelectionKey key) throws IOException {
         final SocketChannel channel = (SocketChannel) key.channel();
         LOG.debug("[{}] Reading ...", channel.getRemoteAddress());
 
@@ -223,7 +223,7 @@ public class TrustSocket implements Runnable {
         // create an outgoing message queue for this socket
         outQueues.put(socket, new ArrayDeque<>());
 
-        // notify when there's data to be read
+        // notify when there's data to be readFromSocket
         socket.register(selector, SelectionKey.OP_READ);
 
         LOG.debug("[SYS] outQueues: {}", outQueues);
