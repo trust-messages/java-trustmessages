@@ -44,7 +44,7 @@ class TrustService implements Runnable, IncomingDataHandler {
         try {
             queue.put(new TrustMessage(socket, sender, data));
         } catch (InterruptedException e) {
-            LOG.error("An error occured while enqueueing a request.", e);
+            LOG.error("An error occurred while enqueueing a request.", e);
         }
     }
 
