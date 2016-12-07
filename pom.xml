@@ -26,8 +26,9 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <!-- http://stackoverflow.com/questions/10935135/maven-and-adding-jars-to-system-scope -->
+                <version>2.4.1</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -36,19 +37,26 @@
                     </archive>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
+                        <descriptorRef>src</descriptorRef>
                     </descriptorRefs>
                 </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
 
     <dependencies>
         <dependency>
-            <groupId>org.openmuc.jasn1</groupId>
+            <groupId>org.openmuc</groupId>
             <artifactId>jasn1</artifactId>
             <version>1.6.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/jasn1-1.6.0.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
