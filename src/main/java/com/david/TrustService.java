@@ -19,7 +19,9 @@ import static com.david.Utils.encode;
 class TrustService implements Runnable, IncomingDataHandler {
     private final static Logger LOG = LoggerFactory.getLogger(TrustService.class);
 
-    private class TrustMessage {
+    private static class TrustMessage {
+        public final static TrustMessage SHUTDOWN = new TrustMessage(null, null, null);
+
         final TrustSocket socket;
         final InetSocketAddress sender;
         final byte[] data;
@@ -48,11 +50,24 @@ class TrustService implements Runnable, IncomingDataHandler {
         }
     }
 
+    public void shutDown() {
+        try {
+            queue.put(TrustMessage.SHUTDOWN);
+        } catch (InterruptedException e) {
+            LOG.error("An error occurred while enqueueing a request.", e);
+        }
+    }
+
     public void run() {
-        while (!Thread.interrupted()) {
+        while (true) {
             try {
                 final TrustMessage packet = queue.take();
                 LOG.debug("Processing: {}", packet);
+
+                if (packet == TrustMessage.SHUTDOWN) {
+                    LOG.info("[SERVICE]: Shutdown");
+                    return;
+                }
 
                 final Message incoming = decode(packet.data);
                 LOG.debug("Decoded: {}", incoming);
@@ -60,34 +75,34 @@ class TrustService implements Runnable, IncomingDataHandler {
                 final Message outgoing = new Message();
 
                 if (incoming.assessmentRequest != null) {
-                    LOG.info("Assessment request: {}", incoming.assessmentRequest.query);
+                    LOG.info("[AREQ]: {}", incoming.assessmentRequest.query);
                     final AssessmentResponse ar = new AssessmentResponse(
                             incoming.assessmentRequest.rid,
                             new AssessmentResponse.Response());
                     ar.response.seqOf = db.getAssessments(incoming.assessmentRequest.query);
                     outgoing.assessmentResponse = ar;
                 } else if (incoming.trustRequest != null) {
-                    LOG.info("Trust request: {}", incoming.trustRequest.query);
+                    LOG.info("[TREQ]: {}", incoming.trustRequest.query);
                     final TrustResponse tr = new TrustResponse(
                             incoming.trustRequest.rid,
                             new TrustResponse.Response());
                     tr.response.seqOf = db.getTrust(incoming.trustRequest.query);
                     outgoing.trustResponse = tr;
                 } else if (incoming.formatRequest != null) {
-                    LOG.info("Format request.");
+                    LOG.info("[FREQ]");
                     final FormatResponse fr = new FormatResponse();
                     fr.tms = QTMDb.ID;
                     fr.assessment = new BerPrintableString(db.getFormat().get("assessment").getBytes());
                     fr.trust = new BerPrintableString(db.getFormat().get("trust").getBytes());
                     outgoing.formatResponse = fr;
                 } else if (incoming.trustResponse != null) {
-                    LOG.info("Trust response: {}", incoming.trustResponse.response.seqOf);
+                    LOG.info("[TRES] {}", incoming.trustResponse.response.seqOf);
                     continue;
                 } else if (incoming.assessmentResponse != null) {
-                    LOG.info("Assessment response: {}", incoming.assessmentResponse.response.seqOf);
+                    LOG.info("[ARES] {}", incoming.assessmentResponse.response.seqOf);
                     continue;
                 } else if (incoming.formatResponse != null) {
-                    LOG.info("Format response: {}", incoming.formatResponse);
+                    LOG.info("[FRES] {}", incoming.formatResponse);
                     continue;
                 } else {
                     throw new IOException("Unknown message: " + incoming);

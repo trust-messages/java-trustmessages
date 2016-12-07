@@ -16,7 +16,7 @@ public class TrustSocket implements Runnable {
     private final static Logger LOG = LoggerFactory.getLogger(TrustSocket.class);
 
     private enum Action {
-        CONNECT, DISCONNECT, SEND;
+        CONNECT, DISCONNECT, SEND, SHUTDOWN;
 
         public static Action fromCode(int n) {
             return values()[n];
@@ -51,6 +51,7 @@ public class TrustSocket implements Runnable {
             server.configureBlocking(false);
             server.socket().bind(new InetSocketAddress((InetAddress) null, port));
             server.register(selector, SelectionKey.OP_ACCEPT);
+            LOG.info("[{}] Binding ", server.socket());
         } catch (IOException e) {
             throw new Error(e);
         }
@@ -58,7 +59,7 @@ public class TrustSocket implements Runnable {
 
     @Override
     public void run() {
-        while (!Thread.interrupted()) {
+        while (true) {
             try {
                 LOG.debug("Waiting ...");
                 selector.select();
@@ -78,7 +79,11 @@ public class TrustSocket implements Runnable {
                         handleAccept(key); // new connection
                     } else if (key.isReadable()) {
                         if (source == key.channel()) {
-                            handlePipe(); // read the data from the pipe and enqueue it for sending
+                            // read the data from the pipe and enqueue it for sending
+                            if (!handlePipe()) {
+                                // shutDown
+                                return;
+                            }
                         } else {
                             handleSocketData(key); // read the data from a network socket and hand it to a worker
                         }
@@ -92,7 +97,7 @@ public class TrustSocket implements Runnable {
         }
     }
 
-    private void handlePipe() throws IOException {
+    private boolean handlePipe() throws IOException {
         // FIX BUG: it can happen that the pipe enqueues two messages in succession;
         // as it is currently implemented, the socket will process them as a single message
         // solution: prefix the message with its size and do processing on discrete messages
@@ -101,10 +106,12 @@ public class TrustSocket implements Runnable {
             readBuffer.clear();
             numRead = source.read(readBuffer);
             if (numRead == -1) {
-                throw new Error("Pipe failure: read -1");
+                LOG.error("[SYS] Pipe failure: read -1");
+                return false;
             }
         } catch (Exception e) {
-            throw new Error("Pipe failure.", e);
+            LOG.error("[SYS] Pipe failure", e);
+            return false;
         }
 
         // get sender and port
@@ -120,7 +127,7 @@ public class TrustSocket implements Runnable {
             final SocketChannel existingChannel = getSocket(address, port);
             if (existingChannel != null) {
                 LOG.warn("[{}] Already connected, skipping.", existingChannel.getRemoteAddress());
-                return;
+                return true;
             }
 
             final SocketChannel channel = SocketChannel.open();
@@ -140,12 +147,12 @@ public class TrustSocket implements Runnable {
 
             if (channel == null) {
                 LOG.warn("[{}:{}] Not connected, skipping.", address, port);
-                return;
+                return true;
             }
 
             final SelectionKey key = channel.keyFor(selector);
             disconnectSocket(key);
-        } else {
+        } else if (action == Action.SEND) {
             // copy data into new buffer
             final byte[] data = new byte[numRead - PIPE_HEADER_LEN];
             System.arraycopy(readBuffer.array(), PIPE_HEADER_LEN, data, 0, numRead - PIPE_HEADER_LEN);
@@ -155,7 +162,7 @@ public class TrustSocket implements Runnable {
             final SocketChannel channel = getSocket(address, port);
             if (channel == null) {
                 LOG.warn("[{}:{}] Not connected, skipping.", address, port);
-                return;
+                return true;
             }
             outQueues.get(channel).add(ByteBuffer.wrap(data));
 
@@ -164,9 +171,13 @@ public class TrustSocket implements Runnable {
             chanKey.interestOps(SelectionKey.OP_WRITE);
 
             LOG.info("[{}] Enqueued {} bytes", channel.getRemoteAddress(), numRead - PIPE_HEADER_LEN);
+        } else {
+            assert action == Action.SHUTDOWN;
+            LOG.warn("[SYS] Shutdown");
+            return false;
         }
 
-
+        return true;
     }
 
     private SocketChannel getSocket(InetAddress hostname, int port) throws IOException {
@@ -214,14 +225,14 @@ public class TrustSocket implements Runnable {
         try {
             numRead = channel.read(readBuffer);
         } catch (IOException e) {
-            // unexpected shutdown
+            // unexpected shutDown
             LOG.warn("[{}] Disconnected unexpectedly; closing.", channel.getRemoteAddress());
             disconnectSocket(key);
             return;
         }
 
         if (numRead == -1) {
-            // clean shutdown
+            // clean shutDown
             LOG.debug("[{}] Disconnected cleanly, closing {}", channel.getRemoteAddress());
             disconnectSocket(key);
             return;
@@ -278,7 +289,7 @@ public class TrustSocket implements Runnable {
         sink.write(buff);
     }
 
-    public void send(InetAddress address, int port, byte[] data) throws IOException {
+    void send(InetAddress address, int port, byte[] data) throws IOException {
         final ByteBuffer buff = ByteBuffer.allocate(data.length + PIPE_HEADER_LEN)
                 .put(address.getAddress())
                 .putInt(port)
@@ -288,7 +299,7 @@ public class TrustSocket implements Runnable {
         sendCommand(buff);
     }
 
-    public void connect(InetAddress address, int port) throws IOException {
+    void connect(InetAddress address, int port) throws IOException {
         final ByteBuffer buff = ByteBuffer.allocate(PIPE_HEADER_LEN)
                 .put(address.getAddress())
                 .putInt(port)
@@ -297,11 +308,20 @@ public class TrustSocket implements Runnable {
         sendCommand(buff);
     }
 
-    public void disconnect(InetAddress address, int port) throws IOException {
+    void disconnect(InetAddress address, int port) throws IOException {
         final ByteBuffer buff = ByteBuffer.allocate(PIPE_HEADER_LEN)
                 .put(address.getAddress())
                 .putInt(port)
                 .putInt(Action.DISCONNECT.ordinal());
+        buff.flip();
+        sendCommand(buff);
+    }
+
+    void shutDown() throws IOException {
+        final ByteBuffer buff = ByteBuffer.allocate(PIPE_HEADER_LEN)
+                .put(InetAddress.getLocalHost().getAddress())
+                .putInt(0)
+                .putInt(Action.SHUTDOWN.ordinal());
         buff.flip();
         sendCommand(buff);
     }
