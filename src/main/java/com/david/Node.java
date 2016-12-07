@@ -11,6 +11,7 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Node {
     private final static Logger LOG = LoggerFactory.getLogger(Node.class);
@@ -73,6 +74,7 @@ public class Node {
                 LOG.warn("General error: {}", e.getMessage(), e);
             }
         }
+        executor.awaitTermination(1, TimeUnit.SECONDS);
         executor.shutdownNow();
     }
 }
