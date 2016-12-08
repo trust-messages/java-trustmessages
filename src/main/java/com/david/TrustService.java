@@ -20,7 +20,7 @@ class TrustService implements Runnable, IncomingDataHandler {
     private final static Logger LOG = LoggerFactory.getLogger(TrustService.class);
 
     private static class TrustMessage {
-        public final static TrustMessage SHUTDOWN = new TrustMessage(null, null, null);
+        final static TrustMessage SHUTDOWN = new TrustMessage(null, null, null);
 
         final TrustSocket socket;
         final InetSocketAddress sender;
@@ -39,7 +39,17 @@ class TrustService implements Runnable, IncomingDataHandler {
     }
 
     private final BlockingQueue<TrustMessage> queue = new LinkedBlockingQueue<>();
-    private final QTMDb db = new QTMDb();
+    private final InMemoryTrustDb db;
+
+    TrustService(String service) {
+        if (service.equalsIgnoreCase("qtm")) {
+            db = new QTMDb();
+        } else if (service.equalsIgnoreCase("sl")) {
+            db = new SLDb();
+        } else {
+            throw new IllegalArgumentException("Unknown service: " + service);
+        }
+    }
 
     @Override
     public void handle(TrustSocket socket, InetSocketAddress sender, byte[] data) {
@@ -50,7 +60,7 @@ class TrustService implements Runnable, IncomingDataHandler {
         }
     }
 
-    public void shutDown() {
+    void shutDown() {
         try {
             queue.put(TrustMessage.SHUTDOWN);
         } catch (InterruptedException e) {

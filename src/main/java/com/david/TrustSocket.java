@@ -92,7 +92,7 @@ public class TrustSocket implements Runnable {
                     }
                 }
             } catch (Exception e) {
-                LOG.error("Exception", e);
+                LOG.error("Error occurred: {}", e.getLocalizedMessage());
             }
         }
     }
@@ -122,7 +122,6 @@ public class TrustSocket implements Runnable {
                 LOG.error("[SYS] Pipe failure: read -1");
                 return false;
             }
-
         } catch (Exception e) {
             LOG.error("[SYS] Pipe failure", e);
             return false;

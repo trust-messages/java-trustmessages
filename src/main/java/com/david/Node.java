@@ -17,9 +17,32 @@ public class Node {
     private final static Logger LOG = LoggerFactory.getLogger(Node.class);
 
     public static void main(String[] args) throws InterruptedException {
+        if (args.length != 2) {
+            LOG.info("Usage: {} <port> qtm|sl", Node.class.getSimpleName());
+            System.exit(1);
+        }
+
+        final int myPort;
+        try {
+            myPort = Integer.parseInt(args[0]);
+        } catch (NumberFormatException e) {
+            LOG.error("Invalid port number: {}", args[0]);
+            System.exit(1);
+            return;
+        }
+
         final ExecutorService executor = Executors.newFixedThreadPool(2);
-        final TrustService service = new TrustService();
-        final TrustSocket socket = new TrustSocket(6000, service);
+
+        final TrustService service;
+        try {
+            service = new TrustService(args[1]);
+        } catch (IllegalArgumentException e) {
+            LOG.error("Invalid trust service name: {}", e.getLocalizedMessage());
+            System.exit(1);
+            return;
+        }
+
+        final TrustSocket socket = new TrustSocket(myPort, service);
 
         executor.submit(service);
         executor.submit(socket);
