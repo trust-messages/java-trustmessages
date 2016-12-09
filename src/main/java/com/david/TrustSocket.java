@@ -183,7 +183,7 @@ public class TrustSocket implements Runnable {
             final SelectionKey chanKey = channel.keyFor(selector);
             chanKey.interestOps(SelectionKey.OP_WRITE);
 
-            LOG.info("[{}] Enqueued {} bytes", channel.getRemoteAddress(), numRead - PIPE_HEADER_LEN);
+            LOG.debug("[{}] Enqueued {} bytes", channel.getRemoteAddress(), numRead - PIPE_HEADER_LEN);
         } else {
             assert action == Action.SHUTDOWN;
             LOG.warn("[SYS] Shutdown");
@@ -216,15 +216,15 @@ public class TrustSocket implements Runnable {
             final ByteBuffer buf = queue.peek();
             numBytes += channel.write(buf);
             if (buf.remaining() > 0) {
-                LOG.warn("[{}] Flushed {} bytes. Output buffer is full. Delaying.", channel.getRemoteAddress(), numBytes);
+                LOG.warn("[{}] Sent ({}B); flush incomplete, delaying.", channel.getRemoteAddress(), numBytes);
                 break;
             }
             queue.remove();
         }
 
         if (queue.isEmpty()) {
-            // stop listening to write-ready events
-            LOG.info("[{}] Flushed the entire queue ({} bytes)", channel.getRemoteAddress(), numBytes);
+            // flushed entire queue; stop listening to write-ready events
+            LOG.info("[{}] Sent ({}B)", channel.getRemoteAddress(), numBytes);
             key.interestOps(SelectionKey.OP_READ);
         }
     }
@@ -256,7 +256,7 @@ public class TrustSocket implements Runnable {
         System.arraycopy(readBuffer.array(), 0, data, 0, numRead);
 
         service.handle(this, (InetSocketAddress) channel.getRemoteAddress(), data);
-        LOG.info("[{}] Read {} bytes; passing to {}", channel.getRemoteAddress(), numRead, service);
+        LOG.info("[{}] Read ({}B)", channel.getRemoteAddress(), numRead);
     }
 
     private void disconnectSocket(SelectionKey key) throws IOException {

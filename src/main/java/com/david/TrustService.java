@@ -72,7 +72,7 @@ class TrustService implements Runnable, IncomingDataHandler {
         while (true) {
             try {
                 final TrustMessage packet = queue.take();
-                LOG.debug("Processing: {}", packet);
+                LOG.debug("Processing: {} [size={}B]", packet, packet.data.length);
 
                 if (packet == TrustMessage.SHUTDOWN) {
                     LOG.info("[SERVICE]: Shutdown");
@@ -85,37 +85,37 @@ class TrustService implements Runnable, IncomingDataHandler {
                 final Message outgoing = new Message();
 
                 if (incoming.assessmentRequest != null) {
-                    LOG.info("[AREQ]: {}", incoming.assessmentRequest.query);
+                    LOG.info("[assessment-request] ({}B): {}", packet.data.length, incoming.assessmentRequest.query);
                     final AssessmentResponse ar = new AssessmentResponse(
                             incoming.assessmentRequest.rid,
                             new AssessmentResponse.Response());
                     ar.response.seqOf = db.getAssessments(incoming.assessmentRequest.query);
                     outgoing.assessmentResponse = ar;
                 } else if (incoming.trustRequest != null) {
-                    LOG.info("[TREQ]: {}", incoming.trustRequest.query);
+                    LOG.info("[trust-request] ({}B): {}", packet.data.length, incoming.trustRequest.query);
                     final TrustResponse tr = new TrustResponse(
                             incoming.trustRequest.rid,
                             new TrustResponse.Response());
                     tr.response.seqOf = db.getTrust(incoming.trustRequest.query);
                     outgoing.trustResponse = tr;
                 } else if (incoming.formatRequest != null) {
-                    LOG.info("[FREQ]");
+                    LOG.info("[format-request] ({}B)", packet.data.length);
                     final FormatResponse fr = new FormatResponse();
                     fr.tms = QTMDb.ID;
                     fr.assessment = new BerPrintableString(db.getFormat().get("assessment").getBytes());
                     fr.trust = new BerPrintableString(db.getFormat().get("trust").getBytes());
                     outgoing.formatResponse = fr;
                 } else if (incoming.trustResponse != null) {
-                    LOG.info("[TRES] {}", incoming.trustResponse.response.seqOf);
+                    LOG.info("[trust-response] {}", incoming.trustResponse.response.seqOf);
                     continue;
                 } else if (incoming.assessmentResponse != null) {
-                    LOG.info("[ARES] {}", incoming.assessmentResponse.response.seqOf);
+                    LOG.info("[assessment-response] {}", incoming.assessmentResponse.response.seqOf);
                     continue;
                 } else if (incoming.formatResponse != null) {
-                    LOG.info("[FRES] {}", incoming.formatResponse);
+                    LOG.info("[format-response] {}", incoming.formatResponse);
                     continue;
                 } else {
-                    throw new IOException("Unknown message: " + incoming);
+                    LOG.warn("[unknown-message] {}", incoming);
                 }
 
                 packet.socket.send(
@@ -123,7 +123,7 @@ class TrustService implements Runnable, IncomingDataHandler {
                         packet.sender.getPort(),
                         encode(outgoing));
             } catch (InterruptedException | IOException e) {
-                LOG.warn("Exception", e);
+                LOG.warn("ERROR: {}", e.getLocalizedMessage(), e);
             }
         }
     }
