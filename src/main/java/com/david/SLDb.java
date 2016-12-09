@@ -16,7 +16,6 @@ public class SLDb extends InMemoryTrustDb {
     private static final List<Assessment> ASSESSMENTS = new ArrayList<>();
 
     private static final Map<String, String> FORMAT = new HashMap<>();
-
     private static final Random RANDOM = new Random();
 
     private static final Iterator<Triple> VALUES = Stream.generate(() -> {

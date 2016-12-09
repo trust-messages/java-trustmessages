@@ -10,6 +10,7 @@ import junit.framework.TestSuite;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 
 public class DbTest extends TestCase {
@@ -22,6 +23,28 @@ public class DbTest extends TestCase {
 
     public static Test suite() {
         return new TestSuite(DbTest.class);
+    }
+
+    private static class ValueComparator<T extends Comparable<? super T>> implements Comparator<T> {
+        public int compare(T a, T b) {
+            return a.compareTo(b);
+        }
+    }
+
+    public void testComparator() {
+        final ValueComparator vc = new ValueComparator<>();
+
+        final String s1 = "aaa", s2 = "bbbb";
+        final Integer i1 = 1, i2 = 2;
+        s1.compareTo(s2);
+        i1.compareTo(i2);
+
+        final Comparator<Comparable> cmp = Comparator.naturalOrder();
+
+
+
+
+
     }
 
     public void testQTMTrustQuery() {

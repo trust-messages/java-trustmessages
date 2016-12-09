@@ -16,8 +16,7 @@ public class QTMDb extends InMemoryTrustDb {
     private static final Map<String, String> FORMAT = new HashMap<>();
 
     private static final Iterator<Integer> VALUES = IntStream.iterate(0, i -> (i + 1) % 5).iterator();
-
-    public static final SystemIdentity ID = new SystemIdentity(new int[]{1, 1, 1});
+    private static final SystemIdentity ID = new SystemIdentity(new int[]{1, 1, 1});
 
     static {
         for (String target : USERS) {
