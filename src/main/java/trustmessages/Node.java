@@ -1,11 +1,11 @@
 package trustmessages;
 
-import trustmessages.asn.*;
-import trustmessages.socket.TrustSocket;
-import trustmessages.tms.TrustService;
 import org.openmuc.jasn1.ber.types.BerInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import trustmessages.asn.*;
+import trustmessages.socket.TrustSocket;
+import trustmessages.tms.TrustService;
 
 import java.io.IOException;
 import java.net.InetAddress;
