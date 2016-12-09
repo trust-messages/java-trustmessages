@@ -8,8 +8,6 @@
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <logger name="com.david.TrustSocket" level="INFO"/>
-    <logger name="com.david.Node" level="INFO"/>
-    <logger name="com.david.tms" level="INFO"/>
+    <logger name="trustmessages" level="INFO"/>
 
 </configuration>
