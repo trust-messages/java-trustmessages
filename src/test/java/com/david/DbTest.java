@@ -1,9 +1,12 @@
 package com.david;
 
-import com.david.format.QTM;
-import com.david.format.SL;
+import com.david.messages.QTM;
+import com.david.messages.SL;
 import com.david.messages.Assessment;
 import com.david.messages.Trust;
+import com.david.tms.InMemoryTrustDb;
+import com.david.tms.QTMDb;
+import com.david.tms.SLDb;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;

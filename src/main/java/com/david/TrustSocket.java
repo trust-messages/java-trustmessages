@@ -302,7 +302,7 @@ public class TrustSocket implements Runnable {
         sink.write(buff);
     }
 
-    void send(InetAddress address, int port, byte[] data) throws IOException {
+    public void send(InetAddress address, int port, byte[] data) throws IOException {
         final ByteBuffer buff = ByteBuffer.allocate(4 + PIPE_HEADER_LEN + data.length)
                 .putInt(PIPE_HEADER_LEN + data.length)
                 .put(address.getAddress())

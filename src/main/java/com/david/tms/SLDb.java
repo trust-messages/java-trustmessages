@@ -1,6 +1,5 @@
-package com.david;
+package com.david.tms;
 
-import com.david.format.SL;
 import com.david.messages.*;
 import org.openmuc.jasn1.ber.types.BerAny;
 import org.openmuc.jasn1.ber.types.BerReal;
@@ -86,6 +85,11 @@ public class SLDb extends InMemoryTrustDb {
         FORMAT.put("trust", "ValueFormat DEFINITIONS ::= BEGIN ValueFormat ::= " +
                 "SEQUENCE { b REAL, d REAL, u REAL } END");
         FORMAT.put("assessment", FORMAT.get("trust"));
+    }
+
+    @Override
+    public SystemIdentity getId() {
+        return ID;
     }
 
     @Override

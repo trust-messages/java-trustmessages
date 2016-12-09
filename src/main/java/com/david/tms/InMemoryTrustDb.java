@@ -1,10 +1,7 @@
-package com.david;
+package com.david.tms;
 
 
-import com.david.messages.Assessment;
-import com.david.messages.Query;
-import com.david.messages.Trust;
-import com.david.messages.Value;
+import com.david.messages.*;
 
 import java.util.*;
 import java.util.function.BiPredicate;
@@ -27,6 +24,8 @@ public abstract class InMemoryTrustDb {
         COMPARATORS.put(4L, (a, b) -> a.compareTo(b) > 0);
         COMPARATORS.put(5L, (a, b) -> a.compareTo(b) >= 0);
     }
+
+    public abstract SystemIdentity getId();
 
     public abstract List<Assessment> getAssessments(Query query);
 

@@ -1,6 +1,5 @@
-package com.david;
+package com.david.tms;
 
-import com.david.format.QTM;
 import com.david.messages.*;
 import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
 import org.openmuc.jasn1.ber.types.BerAny;
@@ -70,6 +69,11 @@ public class QTMDb extends InMemoryTrustDb {
         FORMAT.put("trust", "ValueFormat DEFINITIONS ::= BEGIN ValueFormat ::= " +
                 "ENUMERATED { very-bad (0), bad (1), neutral (2), good (3), very-good (4) } END");
         FORMAT.put("assessment", FORMAT.get("trust"));
+    }
+
+    @Override
+    public SystemIdentity getId() {
+        return ID;
     }
 
     @Override

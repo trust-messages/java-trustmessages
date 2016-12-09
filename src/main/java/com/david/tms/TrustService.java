@@ -1,5 +1,7 @@
-package com.david;
+package com.david.tms;
 
+import com.david.IncomingDataHandler;
+import com.david.TrustSocket;
 import com.david.messages.AssessmentResponse;
 import com.david.messages.FormatResponse;
 import com.david.messages.Message;
@@ -16,7 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import static com.david.Utils.decode;
 import static com.david.Utils.encode;
 
-class TrustService implements Runnable, IncomingDataHandler {
+public class TrustService implements Runnable, IncomingDataHandler {
     private final static Logger LOG = LoggerFactory.getLogger(TrustService.class);
 
     private static class TrustMessage {
@@ -41,7 +43,7 @@ class TrustService implements Runnable, IncomingDataHandler {
     private final BlockingQueue<TrustMessage> queue = new LinkedBlockingQueue<>();
     private final InMemoryTrustDb db;
 
-    TrustService(String service) {
+    public TrustService(String service) {
         if (service.equalsIgnoreCase("qtm")) {
             db = new QTMDb();
         } else if (service.equalsIgnoreCase("sl")) {
@@ -60,7 +62,7 @@ class TrustService implements Runnable, IncomingDataHandler {
         }
     }
 
-    void shutDown() {
+    public void shutDown() {
         try {
             queue.put(TrustMessage.SHUTDOWN);
         } catch (InterruptedException e) {
@@ -101,7 +103,7 @@ class TrustService implements Runnable, IncomingDataHandler {
                 } else if (incoming.formatRequest != null) {
                     LOG.info("[format-request] ({}B)", packet.data.length);
                     final FormatResponse fr = new FormatResponse();
-                    fr.tms = QTMDb.ID;
+                    fr.tms = db.getId();
                     fr.assessment = new BerPrintableString(db.getFormat().get("assessment").getBytes());
                     fr.trust = new BerPrintableString(db.getFormat().get("trust").getBytes());
                     outgoing.formatResponse = fr;
