@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>trustmessages</groupId>
-    <artifactId>trustmessages</artifactId>
+    <artifactId>java-trustmessages</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Trust Messages</name>
+    <name>Java Trust Messages</name>
     <url>http://maven.apache.org</url>
 
     <properties>
