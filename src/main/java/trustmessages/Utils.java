@@ -31,7 +31,7 @@ public class Utils {
         final Message m = new Message(ar, null, null, null, null, null, null);
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
-        m.encode(baos, true);
+        m.encode(baos);
 
         System.out.println(Base64.getEncoder().encodeToString(baos.getArray()));
         System.out.println(m);
@@ -50,7 +50,7 @@ public class Utils {
     public static byte[] encode(Message message) {
         try {
             final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
-            message.encode(baos, true);
+            message.encode(baos);
             return baos.getArray();
         } catch (IOException e) {
             throw new Error(e);

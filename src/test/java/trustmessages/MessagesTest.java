@@ -1,7 +1,5 @@
 package trustmessages;
 
-import trustmessages.asn.QTM;
-import trustmessages.asn.SL;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -16,9 +14,6 @@ import trustmessages.asn.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-
-import static trustmessages.Utils.decode;
-import static org.junit.Assert.assertArrayEquals;
 
 public class MessagesTest extends TestCase {
     public MessagesTest(String testName) {
@@ -126,7 +121,7 @@ public class MessagesTest extends TestCase {
         final Message orig = new Message(ar, null, null, null, null, null, null);
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
-        orig.encode(baos, true);
+        orig.encode(baos);
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
@@ -165,7 +160,7 @@ public class MessagesTest extends TestCase {
         final Message orig = new Message(null, ar, null, null, null, null, null);
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
-        orig.encode(baos, true);
+        orig.encode(baos);
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
@@ -186,7 +181,7 @@ public class MessagesTest extends TestCase {
         final Message orig = new Message(null, null, tr, null, null, null, null);
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
-        orig.encode(baos, true);
+        orig.encode(baos);
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
@@ -224,7 +219,7 @@ public class MessagesTest extends TestCase {
         final Message orig = new Message(null, null, null, tr, null, null, null);
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
-        orig.encode(baos, true);
+        orig.encode(baos);
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
@@ -241,7 +236,7 @@ public class MessagesTest extends TestCase {
     public void testFormatRequest() throws IOException {
         final Message orig = new Message(null, null, null, null, new FormatRequest(), null, null);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(10, true);
-        orig.encode(baos, true);
+        orig.encode(baos);
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
@@ -262,7 +257,7 @@ public class MessagesTest extends TestCase {
         fr.tms = new SystemIdentity(new int[]{1, 2, 3});
         final Message orig = new Message(null, null, null, null, null, fr, null);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
-        orig.encode(baos, true);
+        orig.encode(baos);
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
@@ -281,7 +276,7 @@ public class MessagesTest extends TestCase {
         f.message = new BerPrintableString("Some message".getBytes());
         final Message orig = new Message(null, null, null, null, null, null, f);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
-        orig.encode(baos, true);
+        orig.encode(baos);
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);

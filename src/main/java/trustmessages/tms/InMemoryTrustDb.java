@@ -38,7 +38,7 @@ public abstract class InMemoryTrustDb {
             final Predicate<Trust> left = createTrustPredicate(query.log.l);
             final Predicate<Trust> right = createTrustPredicate(query.log.r);
 
-            if (query.log.op.value == 0) { // and
+            if (query.log.op.value.intValue() == 0) { // and
                 return p -> left.and(right).test(p);
             } else { // or
                 return p -> left.or(right).test(p);
@@ -64,7 +64,7 @@ public abstract class InMemoryTrustDb {
             final Predicate<Assessment> left = createAssessmentPredicate(query.log.l);
             final Predicate<Assessment> right = createAssessmentPredicate(query.log.r);
 
-            if (query.log.op.value == 0) { // and
+            if (query.log.op.value.intValue() == 0) { // and
                 return p -> left.and(right).test(p);
             } else { // or
                 return p -> left.or(right).test(p);
