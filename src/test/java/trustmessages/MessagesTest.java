@@ -11,9 +11,12 @@ import org.openmuc.jasn1.ber.types.BerReal;
 import org.openmuc.jasn1.ber.types.string.BerPrintableString;
 import trustmessages.asn.*;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
 
 public class MessagesTest extends TestCase {
     public MessagesTest(String testName) {
@@ -172,6 +175,7 @@ public class MessagesTest extends TestCase {
         final byte[] q = Utils.decode("YgwCAhOIZAYKAQVCAVA=");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
+        System.out.println(m);
     }
 
     public void testTrustRequest() throws IOException {
@@ -271,15 +275,18 @@ public class MessagesTest extends TestCase {
     }
 
     public void testFault() throws IOException {
-        final Fault f = new Fault();
-        f.value = new BerEnum(0);
-        f.message = new BerPrintableString("Some message".getBytes());
-        final Message orig = new Message(null, null, null, null, null, null, f);
+        final Fault f = new Fault(new BerEnum(0), new BerPrintableString("something went wrong!".getBytes()));
+        final Message orig = new Message(null, null, null,
+                null, null, null, f);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos);
 
+        final byte[] py = DatatypeConverter.parseBase64Binary("ahoKAQATFXNvbWV0aGluZyB3ZW50IHdyb25nIQ==");
+        System.out.println(Arrays.toString(py));
+        System.out.println(Arrays.toString(baos.getArray()));
+
         final Message decoded = new Message();
-        decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
+        decoded.decode(new ByteArrayInputStream(baos.getArray()));
         assertEquals(orig.toString(), decoded.toString());
     }
 }
