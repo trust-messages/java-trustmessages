@@ -3,6 +3,7 @@ package trustmessages.tms;
 
 import trustmessages.asn.*;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
@@ -38,14 +39,15 @@ public abstract class InMemoryTrustDb {
             final Predicate<Trust> left = createTrustPredicate(query.log.l);
             final Predicate<Trust> right = createTrustPredicate(query.log.r);
 
-            if (query.log.op.value.intValue() == 0) { // and
+            if (query.log.op.value.equals(BigInteger.ZERO)) { // and
                 return p -> left.and(right).test(p);
             } else { // or
                 return p -> left.or(right).test(p);
             }
         } else {
             final Value value = query.cmp.value;
-            final BiPredicate<? super Comparable, ? super Comparable> comparator = COMPARATORS.get(query.cmp.op.value);
+            final BiPredicate<? super Comparable, ? super Comparable> comparator =
+                    COMPARATORS.get(query.cmp.op.value.longValue());
 
             if (value.date != null) {
                 return p -> comparator.test(p.date.value, value.date.value);
@@ -64,14 +66,15 @@ public abstract class InMemoryTrustDb {
             final Predicate<Assessment> left = createAssessmentPredicate(query.log.l);
             final Predicate<Assessment> right = createAssessmentPredicate(query.log.r);
 
-            if (query.log.op.value.intValue() == 0) { // and
+            if (query.log.op.value.equals(BigInteger.ZERO)) { // and
                 return p -> left.and(right).test(p);
             } else { // or
                 return p -> left.or(right).test(p);
             }
         } else {
             final Value value = query.cmp.value;
-            final BiPredicate<? super Comparable, ? super Comparable> comparator = COMPARATORS.get(query.cmp.op.value);
+            final BiPredicate<? super Comparable, ? super Comparable> comparator =
+                    COMPARATORS.get(query.cmp.op.value.longValue());
 
             if (value.date != null) {
                 return p -> comparator.test(p.date.value, value.date.value);

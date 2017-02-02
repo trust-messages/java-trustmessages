@@ -3,10 +3,7 @@ package trustmessages;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import trustmessages.asn.Assessment;
-import trustmessages.asn.QTM;
-import trustmessages.asn.SL;
-import trustmessages.asn.Trust;
+import trustmessages.asn.*;
 import trustmessages.tms.InMemoryTrustDb;
 import trustmessages.tms.QTMDb;
 import trustmessages.tms.SLDb;
@@ -28,8 +25,8 @@ public class DbTest extends TestCase {
     }
 
     public void testQTMTrustQuery() {
-        final List<Trust> trust = QTM_DB.getTrust(
-                Utils.getQuery("(service = seller OR service = buyer) AND target = david"));
+        final Query query = Utils.getQuery("(service = seller OR service = buyer) AND target = david");
+        final List<Trust> trust = QTM_DB.getTrust(query);
         assertTrue(trust.size() > 0);
 
         trust.forEach(t -> {

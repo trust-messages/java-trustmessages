@@ -11,12 +11,9 @@ import org.openmuc.jasn1.ber.types.BerReal;
 import org.openmuc.jasn1.ber.types.string.BerPrintableString;
 import trustmessages.asn.*;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
 
 public class MessagesTest extends TestCase {
     public MessagesTest(String testName) {
@@ -25,6 +22,18 @@ public class MessagesTest extends TestCase {
 
     public static Test suite() {
         return new TestSuite(MessagesTest.class);
+    }
+
+    public void testDecimal() throws IOException {
+        final BerReal orig = new BerReal(0.7);
+        final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100,
+                true);
+        orig.encode(baos);
+
+        final BerReal decoded = new BerReal();
+        decoded.decode(new ByteArrayInputStream(baos.getArray()));
+
+        assertEquals(orig.value, decoded.value, 0.001);
     }
 
     public void testQuantitativeAssessmentFromPython() throws IOException {
@@ -37,10 +46,13 @@ public class MessagesTest extends TestCase {
         final SL orig = new SL(new BerReal(0.1), new BerReal(0.2), new BerReal(0.7));
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
-        orig.encode(baos, true);
+        orig.encode(baos);
 
         final SL decoded = new SL();
-        decoded.decode(new ByteArrayInputStream(baos.getArray()), true);
+        decoded.decode(new ByteArrayInputStream(baos.getArray()));
+
+        System.out.println(orig);
+        System.out.println(decoded);
 
         assertEquals(orig.toString(), decoded.toString());
         assertEquals(orig.b.value, decoded.b.value, 0.001);
@@ -70,7 +82,7 @@ public class MessagesTest extends TestCase {
 
         final SL sl = new SL(new BerReal(0.1), new BerReal(0.2), new BerReal(0.7));
         final BerByteArrayOutputStream osValue = new BerByteArrayOutputStream(32, true);
-        sl.encode(osValue, true);
+        sl.encode(osValue);
 
         orig.value = new BerAny(osValue.getArray());
 
@@ -78,7 +90,7 @@ public class MessagesTest extends TestCase {
         orig.encode(osMessage, true);
 
         final Assessment decoded = new Assessment();
-        decoded.decode(new ByteArrayInputStream(osMessage.getArray()), true);
+        decoded.decode(new ByteArrayInputStream(osMessage.getArray()));
 
         assertEquals(orig.toString(), decoded.toString());
     }
@@ -175,7 +187,6 @@ public class MessagesTest extends TestCase {
         final byte[] q = Utils.decode("YgwCAhOIZAYKAQVCAVA=");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
-        System.out.println(m);
     }
 
     public void testTrustRequest() throws IOException {
@@ -280,10 +291,6 @@ public class MessagesTest extends TestCase {
                 null, null, null, f);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos);
-
-        final byte[] py = DatatypeConverter.parseBase64Binary("ahoKAQATFXNvbWV0aGluZyB3ZW50IHdyb25nIQ==");
-        System.out.println(Arrays.toString(py));
-        System.out.println(Arrays.toString(baos.getArray()));
 
         final Message decoded = new Message();
         decoded.decode(new ByteArrayInputStream(baos.getArray()));
