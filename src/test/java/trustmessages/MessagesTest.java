@@ -51,9 +51,6 @@ public class MessagesTest extends TestCase {
         final SL decoded = new SL();
         decoded.decode(new ByteArrayInputStream(baos.getArray()));
 
-        System.out.println(orig);
-        System.out.println(decoded);
-
         assertEquals(orig.toString(), decoded.toString());
         assertEquals(orig.b.value, decoded.b.value, 0.001);
         assertEquals(orig.d.value, decoded.d.value, 0.001);
