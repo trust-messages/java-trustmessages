@@ -15,110 +15,109 @@ import java.io.InputStream;
 
 public class AssessmentRequest {
 
-	public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 6);
+    public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 6);
 
-	public byte[] code = null;
-	public BerInteger rid = null;
-	public Query query = null;
-	
-	public AssessmentRequest() {
-	}
+    public byte[] code = null;
+    public BerInteger rid = null;
+    public Query query = null;
 
-	public AssessmentRequest(byte[] code) {
-		this.code = code;
-	}
+    public AssessmentRequest() {
+    }
 
-	public AssessmentRequest(BerInteger rid, Query query) {
-		this.rid = rid;
-		this.query = query;
-	}
+    public AssessmentRequest(byte[] code) {
+        this.code = code;
+    }
 
-	public int encode(BerByteArrayOutputStream os) throws IOException {
-		return encode(os, true);
-	}
+    public AssessmentRequest(BerInteger rid, Query query) {
+        this.rid = rid;
+        this.query = query;
+    }
 
-	public int encode(BerByteArrayOutputStream os, boolean withTag) throws IOException {
+    public int encode(BerByteArrayOutputStream os) throws IOException {
+        return encode(os, true);
+    }
 
-		if (code != null) {
-			for (int i = code.length - 1; i >= 0; i--) {
-				os.write(code[i]);
-			}
-			if (withTag) {
-				return tag.encode(os) + code.length;
-			}
-			return code.length;
-		}
+    public int encode(BerByteArrayOutputStream os, boolean withTag) throws IOException {
 
-		int codeLength = 0;
-		codeLength += query.encode(os);
-		
-		codeLength += rid.encode(os, true);
-		
-		codeLength += BerLength.encodeLength(os, codeLength);
+        if (code != null) {
+            for (int i = code.length - 1; i >= 0; i--) {
+                os.write(code[i]);
+            }
+            if (withTag) {
+                return tag.encode(os) + code.length;
+            }
+            return code.length;
+        }
 
-		if (withTag) {
-			codeLength += tag.encode(os);
-		}
+        int codeLength = 0;
+        codeLength += query.encode(os);
 
-		return codeLength;
+        codeLength += rid.encode(os, true);
 
-	}
+        codeLength += BerLength.encodeLength(os, codeLength);
 
-	public int decode(InputStream is) throws IOException {
-		return decode(is, true);
-	}
+        if (withTag) {
+            codeLength += tag.encode(os);
+        }
 
-	public int decode(InputStream is, boolean withTag) throws IOException {
-		int codeLength = 0;
-		int subCodeLength = 0;
-		BerTag berTag = new BerTag();
+        return codeLength;
 
-		if (withTag) {
-			codeLength += tag.decodeAndCheck(is);
-		}
+    }
 
-		BerLength length = new BerLength();
-		codeLength += length.decode(is);
+    public int decode(InputStream is) throws IOException {
+        return decode(is, true);
+    }
 
-		int totalLength = length.val;
-		codeLength += totalLength;
+    public int decode(InputStream is, boolean withTag) throws IOException {
+        int codeLength = 0;
+        int subCodeLength = 0;
+        BerTag berTag = new BerTag();
 
-		subCodeLength += berTag.decode(is);
-		if (berTag.equals(BerInteger.tag)) {
-			rid = new BerInteger();
-			subCodeLength += rid.decode(is, false);
-			subCodeLength += berTag.decode(is);
-		}
-		else {
-			throw new IOException("Tag does not match the mandatory sequence element tag.");
-		}
-		
-		query = new Query();
-		subCodeLength += query.decode(is, berTag);
-		if (subCodeLength == totalLength) {
-			return codeLength;
-		}
-		throw new IOException("Unexpected end of sequence, length tag: " + totalLength + ", actual sequence length: " + subCodeLength);
+        if (withTag) {
+            codeLength += tag.decodeAndCheck(is);
+        }
 
-		
-	}
+        BerLength length = new BerLength();
+        codeLength += length.decode(is);
 
-	public void encodeAndSave(int encodingSizeGuess) throws IOException {
-		BerByteArrayOutputStream os = new BerByteArrayOutputStream(encodingSizeGuess);
-		encode(os, false);
-		code = os.getArray();
-	}
+        int totalLength = length.val;
+        codeLength += totalLength;
 
-	public String toString() {
-		StringBuilder sb = new StringBuilder("SEQUENCE{");
-		sb.append("rid: ").append(rid);
-		
-		sb.append(", ");
-		sb.append("query: ").append(query);
-		
-		sb.append("}");
-		return sb.toString();
-	}
+        subCodeLength += berTag.decode(is);
+        if (berTag.equals(BerInteger.tag)) {
+            rid = new BerInteger();
+            subCodeLength += rid.decode(is, false);
+            subCodeLength += berTag.decode(is);
+        } else {
+            throw new IOException("Tag does not match the mandatory sequence element tag.");
+        }
+
+        query = new Query();
+        subCodeLength += query.decode(is, berTag);
+        if (subCodeLength == totalLength) {
+            return codeLength;
+        }
+        throw new IOException("Unexpected end of sequence, length tag: " + totalLength + ", actual sequence length: " + subCodeLength);
+
+
+    }
+
+    public void encodeAndSave(int encodingSizeGuess) throws IOException {
+        BerByteArrayOutputStream os = new BerByteArrayOutputStream(encodingSizeGuess);
+        encode(os, false);
+        code = os.getArray();
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder("SEQUENCE{");
+        sb.append("rid: ").append(rid);
+
+        sb.append(", ");
+        sb.append("query: ").append(query);
+
+        sb.append("}");
+        return sb.toString();
+    }
 
 }
 
