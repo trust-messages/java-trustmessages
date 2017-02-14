@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SLDb extends InMemoryTrustDb {
-    private static final SystemIdentity ID = new SystemIdentity(new int[]{2, 2, 2});
+    private static final Format ID = new Format(new int[]{2, 2, 2});
     private static final List<Trust> TRUST = new ArrayList<>();
     private static final List<Assessment> ASSESSMENTS = new ArrayList<>();
 
@@ -37,7 +37,6 @@ public class SLDb extends InMemoryTrustDb {
         for (String target : USERS) {
             for (String service : SERVICES) {
                 final Trust t = new Trust();
-                t.tms = ID;
                 t.target = new Entity(target.getBytes());
                 t.service = new Service(service.getBytes());
                 t.date = new BinaryTime(TIME.next());
@@ -63,7 +62,6 @@ public class SLDb extends InMemoryTrustDb {
 
                 for (String service : SERVICES) {
                     final Assessment a = new Assessment();
-                    a.tms = ID;
                     a.source = new Entity(source.getBytes());
                     a.target = new Entity(target.getBytes());
                     a.service = new Service(service.getBytes());
@@ -88,7 +86,7 @@ public class SLDb extends InMemoryTrustDb {
     }
 
     @Override
-    public SystemIdentity getId() {
+    public Format getId() {
         return ID;
     }
 

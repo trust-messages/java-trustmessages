@@ -18,7 +18,6 @@ public class Assessment {
     public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 9);
 
     public byte[] code = null;
-    public SystemIdentity tms = null;
     public Entity source = null;
     public Entity target = null;
     public Service service = null;
@@ -32,8 +31,7 @@ public class Assessment {
         this.code = code;
     }
 
-    public Assessment(SystemIdentity tms, Entity source, Entity target, Service service, BinaryTime date, BerAny value) {
-        this.tms = tms;
+    public Assessment(Entity source, Entity target, Service service, BinaryTime date, BerAny value) {
         this.source = source;
         this.target = target;
         this.service = service;
@@ -68,8 +66,6 @@ public class Assessment {
 
         codeLength += source.encode(os, true);
 
-        codeLength += tms.encode(os, true);
-
         codeLength += BerLength.encodeLength(os, codeLength);
 
         if (withTag) {
@@ -100,14 +96,6 @@ public class Assessment {
         codeLength += totalLength;
 
         subCodeLength += berTag.decode(is);
-        if (berTag.equals(SystemIdentity.tag)) {
-            tms = new SystemIdentity();
-            subCodeLength += tms.decode(is, false);
-            subCodeLength += berTag.decode(is);
-        } else {
-            throw new IOException("Tag does not match the mandatory sequence element tag.");
-        }
-
         if (berTag.equals(Entity.tag)) {
             source = new Entity();
             subCodeLength += source.decode(is, false);
@@ -153,9 +141,6 @@ public class Assessment {
 
     public String toString() {
         StringBuilder sb = new StringBuilder("SEQUENCE{");
-        sb.append("tms: ").append(tms);
-
-        sb.append(", ");
         sb.append("source: ").append(source);
 
         sb.append(", ");

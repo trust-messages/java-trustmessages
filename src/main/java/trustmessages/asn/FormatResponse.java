@@ -18,7 +18,7 @@ public class FormatResponse {
     public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 1);
 
     public byte[] code = null;
-    public SystemIdentity tms = null;
+    public Format format = null;
     public BerPrintableString assessment = null;
     public BerPrintableString trust = null;
 
@@ -29,8 +29,8 @@ public class FormatResponse {
         this.code = code;
     }
 
-    public FormatResponse(SystemIdentity tms, BerPrintableString assessment, BerPrintableString trust) {
-        this.tms = tms;
+    public FormatResponse(Format format, BerPrintableString assessment, BerPrintableString trust) {
+        this.format = format;
         this.assessment = assessment;
         this.trust = trust;
     }
@@ -56,7 +56,7 @@ public class FormatResponse {
 
         codeLength += assessment.encode(os, true);
 
-        codeLength += tms.encode(os, true);
+        codeLength += format.encode(os, true);
 
         codeLength += BerLength.encodeLength(os, codeLength);
 
@@ -88,9 +88,9 @@ public class FormatResponse {
         codeLength += totalLength;
 
         subCodeLength += berTag.decode(is);
-        if (berTag.equals(SystemIdentity.tag)) {
-            tms = new SystemIdentity();
-            subCodeLength += tms.decode(is, false);
+        if (berTag.equals(Format.tag)) {
+            format = new Format();
+            subCodeLength += format.decode(is, false);
             subCodeLength += berTag.decode(is);
         } else {
             throw new IOException("Tag does not match the mandatory sequence element tag.");
@@ -124,7 +124,7 @@ public class FormatResponse {
 
     public String toString() {
         StringBuilder sb = new StringBuilder("SEQUENCE{");
-        sb.append("tms: ").append(tms);
+        sb.append("format: ").append(format);
 
         sb.append(", ");
         sb.append("assessment: ").append(assessment);

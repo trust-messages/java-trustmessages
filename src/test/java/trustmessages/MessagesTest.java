@@ -37,9 +37,20 @@ public class MessagesTest extends TestCase {
     }
 
     public void testQuantitativeAssessmentFromPython() throws IOException {
-        final byte[] q = Utils.decode("aSMGAikBEwdhQHguY29tEwdiQHguY29tEwVidXllcgIBZAIBAQ==");
+        final byte[] q = Utils.decode("aR8TB2FAeC5jb20TB2JAeC5jb20TBWJ1eWVyAgFkAgEB");
         final Assessment m = new Assessment();
         m.decode(new ByteArrayInputStream(q), true);
+    }
+
+    public void testSLAssessmentFromPython() throws IOException {
+        final byte[] q = Utils.decode("aTQTB2JAeC5jb20TB2NAeC5jb20TBmxldHRlcgIBZDAVCQUDN0UtMQkFAzJFLTEJBQMxRS0x");
+        final Assessment m = new Assessment();
+        m.decode(new ByteArrayInputStream(q), true);
+
+        // TODO: The value does not decode!
+        // final SL bdu = new SL();
+        // bdu.decode(new ByteArrayInputStream(m.value.value));
+        // System.out.println(bdu);
     }
 
     public void testSL() throws IOException {
@@ -71,7 +82,6 @@ public class MessagesTest extends TestCase {
 
     public void testQuantitativeAssessment() throws IOException {
         final Assessment orig = new Assessment();
-        orig.tms = new SystemIdentity(new int[]{1, 1, 1});
         orig.source = new Entity("alice".getBytes());
         orig.target = new Entity("bob".getBytes());
         orig.service = new Service("seller".getBytes());
@@ -93,14 +103,13 @@ public class MessagesTest extends TestCase {
     }
 
     public void testQualitativeAssessmentFromPython() throws IOException {
-        final byte[] q = Utils.decode("aSsGAlICEwdjQHguY29tEwdhQHguY29tEwZzZWxsZXICAWQTCGRpc3RydXN0");
+        final byte[] q = Utils.decode("aScTB2NAeC5jb20TB2FAeC5jb20TBnNlbGxlcgIBZBMIZGlzdHJ1c3Q");
         final Assessment m = new Assessment();
         m.decode(new ByteArrayInputStream(q), true);
     }
 
     public void testQualitativeAssessment() throws IOException {
         final Assessment orig = new Assessment();
-        orig.tms = new SystemIdentity(new int[]{1, 1, 1});
         orig.source = new Entity("alice".getBytes());
         orig.target = new Entity("bob".getBytes());
         orig.service = new Service("seller".getBytes());
@@ -142,20 +151,21 @@ public class MessagesTest extends TestCase {
     }
 
     public void testAssessmentResponseFromPython() throws IOException {
-        final byte[] q = Utils.decode("Z1MCAQEwTmklBgIpARMHYkB4LmNvbRMHY0B4LmNvbRMGbGV0dGVyAgID6AIBBWklBgIpARMHYUB4LmNvbRMHYkB4LmNvbRMGcmVudGVyAgID6AIBBQ==");
+        final byte[] q = Utils.decode("Z1UTBGViYXkGAikBAgEBMEZpIRMHYkB4LmNvbRMHY0B4LmNvbRMGbGV0dGVyAgID6AIBBWkhEwdhQHguY29tEwdiQHguY29tEwZyZW50ZXICAgPoAgEF");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
     }
 
     public void testAssessmentResponse() throws IOException {
         final AssessmentResponse ar = new AssessmentResponse();
+        ar.provider = new Entity("sometms".getBytes());
+        ar.format = new Format(new int[]{1, 1, 1});
         ar.rid = new BerInteger(1);
         ar.response = new AssessmentResponse.Response();
         ar.response.seqOf = new ArrayList<>();
 
         for (int i = 0; i < 2; i++) {
             final Assessment a = new Assessment();
-            a.tms = new SystemIdentity(new int[]{1, 1, 1});
             a.source = new Entity("alice".getBytes());
             a.target = new Entity("you@you.com".getBytes());
             a.service = new Service("seller".getBytes());
@@ -202,20 +212,21 @@ public class MessagesTest extends TestCase {
     }
 
     public void testTrustResponseFromPython() throws IOException {
-        final byte[] q = Utils.decode("Y0wCAwERcDBFaCEGAikBEwdjQHguY29tEwVidXllcgICB9ATB25ldXRyYWxoIAYCKQETB2FAeC5jb20TBnNlbGxlcgICB9ATBXRydXN0");
+        final byte[] q = Utils.decode("Y04TBGViYXkGAikBAgMBEXAwPWgdEwdjQHguY29tEwVidXllcgICB9ATB25ldXRyYWxoHBMHYUB4LmNvbRMGc2VsbGVyAgIH0BMFdHJ1c3Q=");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
     }
 
     public void testTrustResponse() throws IOException {
         final TrustResponse tr = new TrustResponse();
+        tr.provider = new Entity("sometms".getBytes());
+        tr.format = new Format(new int[]{1, 1, 1});
         tr.rid = new BerInteger(1);
         tr.response = new TrustResponse.Response();
         tr.response.seqOf = new ArrayList<>();
 
         for (int i = 0; i < 2; i++) {
             final Trust t = new Trust();
-            t.tms = new SystemIdentity(new int[]{1, 1, 1});
             t.target = new Entity("alice".getBytes());
             t.service = new Service("seller".getBytes());
             t.date = new BinaryTime(10);
@@ -266,7 +277,7 @@ public class MessagesTest extends TestCase {
         final FormatResponse fr = new FormatResponse();
         fr.assessment = new BerPrintableString("Assessment format".getBytes());
         fr.trust = new BerPrintableString("Trust format".getBytes());
-        fr.tms = new SystemIdentity(new int[]{1, 2, 3});
+        fr.format = new Format(new int[]{1, 2, 3});
         final Message orig = new Message(null, null, null, null, null, fr, null);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos);

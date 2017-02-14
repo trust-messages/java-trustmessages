@@ -19,8 +19,8 @@ public class Node {
     private final static Logger LOG = LoggerFactory.getLogger(Node.class);
 
     public static void main(String[] args) throws InterruptedException {
-        if (args.length != 2) {
-            LOG.info("Usage: {} <port> qtm|sl", Node.class.getSimpleName());
+        if (args.length != 3) {
+            LOG.info("Usage: {} <port> qtm|sl tms-name", Node.class.getSimpleName());
             System.exit(1);
         }
 
@@ -37,7 +37,7 @@ public class Node {
 
         final TrustService service;
         try {
-            service = new TrustService(args[1]);
+            service = new TrustService(args[1], args[2]);
         } catch (IllegalArgumentException e) {
             LOG.error("Invalid trust service name: {}", e.getLocalizedMessage());
             System.exit(1);

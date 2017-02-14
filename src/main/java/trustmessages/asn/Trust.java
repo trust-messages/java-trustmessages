@@ -18,7 +18,6 @@ public class Trust {
     public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 8);
 
     public byte[] code = null;
-    public SystemIdentity tms = null;
     public Entity target = null;
     public Service service = null;
     public BinaryTime date = null;
@@ -31,8 +30,7 @@ public class Trust {
         this.code = code;
     }
 
-    public Trust(SystemIdentity tms, Entity target, Service service, BinaryTime date, BerAny value) {
-        this.tms = tms;
+    public Trust(Entity target, Service service, BinaryTime date, BerAny value) {
         this.target = target;
         this.service = service;
         this.date = date;
@@ -64,8 +62,6 @@ public class Trust {
 
         codeLength += target.encode(os, true);
 
-        codeLength += tms.encode(os, true);
-
         codeLength += BerLength.encodeLength(os, codeLength);
 
         if (withTag) {
@@ -96,14 +92,6 @@ public class Trust {
         codeLength += totalLength;
 
         subCodeLength += berTag.decode(is);
-        if (berTag.equals(SystemIdentity.tag)) {
-            tms = new SystemIdentity();
-            subCodeLength += tms.decode(is, false);
-            subCodeLength += berTag.decode(is);
-        } else {
-            throw new IOException("Tag does not match the mandatory sequence element tag.");
-        }
-
         if (berTag.equals(Entity.tag)) {
             target = new Entity();
             subCodeLength += target.decode(is, false);
@@ -141,9 +129,6 @@ public class Trust {
 
     public String toString() {
         StringBuilder sb = new StringBuilder("SEQUENCE{");
-        sb.append("tms: ").append(tms);
-
-        sb.append(", ");
         sb.append("target: ").append(target);
 
         sb.append(", ");

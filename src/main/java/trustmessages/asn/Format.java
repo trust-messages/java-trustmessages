@@ -7,16 +7,16 @@ package trustmessages.asn;
 import org.openmuc.jasn1.ber.types.BerObjectIdentifier;
 
 
-public class SystemIdentity extends BerObjectIdentifier {
+public class Format extends BerObjectIdentifier {
 
-    public SystemIdentity() {
+    public Format() {
     }
 
-    public SystemIdentity(byte[] code) {
+    public Format(byte[] code) {
         super(code);
     }
 
-    public SystemIdentity(int[] value) {
+    public Format(int[] value) {
         super(value);
     }
 

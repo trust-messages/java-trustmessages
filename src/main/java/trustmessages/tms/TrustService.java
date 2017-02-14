@@ -1,23 +1,17 @@
 package trustmessages.tms;
 
-import trustmessages.socket.IncomingDataHandler;
-import trustmessages.socket.TrustSocket;
-import trustmessages.asn.AssessmentResponse;
-import trustmessages.asn.FormatResponse;
-import trustmessages.asn.Message;
-import trustmessages.asn.TrustResponse;
 import org.openmuc.jasn1.ber.types.string.BerPrintableString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import trustmessages.Utils;
+import trustmessages.asn.*;
+import trustmessages.socket.IncomingDataHandler;
+import trustmessages.socket.TrustSocket;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import static trustmessages.Utils.decode;
-import static trustmessages.Utils.encode;
 
 public class TrustService implements Runnable, IncomingDataHandler {
     private final static Logger LOG = LoggerFactory.getLogger(TrustService.class);
@@ -43,8 +37,11 @@ public class TrustService implements Runnable, IncomingDataHandler {
 
     private final BlockingQueue<TrustMessage> queue = new LinkedBlockingQueue<>();
     private final InMemoryTrustDb db;
+    private final String name;
 
-    public TrustService(String service) {
+    public TrustService(String service, String name) {
+        this.name = name;
+
         if (service.equalsIgnoreCase("qtm")) {
             db = new QTMDb();
         } else if (service.equalsIgnoreCase("sl")) {
@@ -90,6 +87,8 @@ public class TrustService implements Runnable, IncomingDataHandler {
                 if (incoming.assessmentRequest != null) {
                     LOG.info("[assessment-request] ({}B): {}", packet.data.length, incoming.assessmentRequest.query);
                     final AssessmentResponse ar = new AssessmentResponse(
+                            new Entity(name.getBytes()),
+                            db.getId(),
                             incoming.assessmentRequest.rid,
                             new AssessmentResponse.Response());
                     ar.response.seqOf = db.getAssessments(incoming.assessmentRequest.query);
@@ -97,6 +96,8 @@ public class TrustService implements Runnable, IncomingDataHandler {
                 } else if (incoming.trustRequest != null) {
                     LOG.info("[trust-request] ({}B): {}", packet.data.length, incoming.trustRequest.query);
                     final TrustResponse tr = new TrustResponse(
+                            new Entity(name.getBytes()),
+                            db.getId(),
                             incoming.trustRequest.rid,
                             new TrustResponse.Response());
                     tr.response.seqOf = db.getTrust(incoming.trustRequest.query);
@@ -104,15 +105,17 @@ public class TrustService implements Runnable, IncomingDataHandler {
                 } else if (incoming.formatRequest != null) {
                     LOG.info("[format-request] ({}B)", packet.data.length);
                     final FormatResponse fr = new FormatResponse();
-                    fr.tms = db.getId();
+                    fr.format = db.getId();
                     fr.assessment = new BerPrintableString(db.getFormat().get("assessment").getBytes());
                     fr.trust = new BerPrintableString(db.getFormat().get("trust").getBytes());
                     outgoing.formatResponse = fr;
                 } else if (incoming.trustResponse != null) {
-                    LOG.info("[trust-response] {}", incoming.trustResponse.response.seqOf);
+                    LOG.info("[trust-response] ({}) {}", incoming.trustResponse.provider,
+                            incoming.trustResponse.response.seqOf);
                     continue;
                 } else if (incoming.assessmentResponse != null) {
-                    LOG.info("[assessment-response] {}", incoming.assessmentResponse.response.seqOf);
+                    LOG.info("[assessment-response] ({}) {}", incoming.assessmentResponse.provider,
+                            incoming.assessmentResponse.response.seqOf);
                     continue;
                 } else if (incoming.formatResponse != null) {
                     LOG.info("[format-response] {}", incoming.formatResponse);

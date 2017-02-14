@@ -26,7 +26,7 @@ public abstract class InMemoryTrustDb {
         COMPARATORS.put(5L, (a, b) -> a.compareTo(b) >= 0);
     }
 
-    public abstract SystemIdentity getId();
+    public abstract Format getId();
 
     public abstract List<Assessment> getAssessments(Query query);
 

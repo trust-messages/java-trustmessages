@@ -18,6 +18,140 @@ import java.util.List;
 
 public class TrustResponse {
 
+    public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 3);
+    public byte[] code = null;
+    public Entity provider = null;
+    public Format format = null;
+    public BerInteger rid = null;
+    public Response response = null;
+    public TrustResponse() {
+    }
+
+    public TrustResponse(byte[] code) {
+        this.code = code;
+    }
+
+    public TrustResponse(Entity provider, Format format, BerInteger rid, Response response) {
+        this.provider = provider;
+        this.format = format;
+        this.rid = rid;
+        this.response = response;
+    }
+
+    public int encode(BerByteArrayOutputStream os) throws IOException {
+        return encode(os, true);
+    }
+
+    public int encode(BerByteArrayOutputStream os, boolean withTag) throws IOException {
+
+        if (code != null) {
+            for (int i = code.length - 1; i >= 0; i--) {
+                os.write(code[i]);
+            }
+            if (withTag) {
+                return tag.encode(os) + code.length;
+            }
+            return code.length;
+        }
+
+        int codeLength = 0;
+        codeLength += response.encode(os, true);
+
+        codeLength += rid.encode(os, true);
+
+        codeLength += format.encode(os, true);
+
+        codeLength += provider.encode(os, true);
+
+        codeLength += BerLength.encodeLength(os, codeLength);
+
+        if (withTag) {
+            codeLength += tag.encode(os);
+        }
+
+        return codeLength;
+
+    }
+
+    public int decode(InputStream is) throws IOException {
+        return decode(is, true);
+    }
+
+    public int decode(InputStream is, boolean withTag) throws IOException {
+        int codeLength = 0;
+        int subCodeLength = 0;
+        BerTag berTag = new BerTag();
+
+        if (withTag) {
+            codeLength += tag.decodeAndCheck(is);
+        }
+
+        BerLength length = new BerLength();
+        codeLength += length.decode(is);
+
+        int totalLength = length.val;
+        codeLength += totalLength;
+
+        subCodeLength += berTag.decode(is);
+        if (berTag.equals(Entity.tag)) {
+            provider = new Entity();
+            subCodeLength += provider.decode(is, false);
+            subCodeLength += berTag.decode(is);
+        } else {
+            throw new IOException("Tag does not match the mandatory sequence element tag.");
+        }
+
+        if (berTag.equals(Format.tag)) {
+            format = new Format();
+            subCodeLength += format.decode(is, false);
+            subCodeLength += berTag.decode(is);
+        } else {
+            throw new IOException("Tag does not match the mandatory sequence element tag.");
+        }
+
+        if (berTag.equals(BerInteger.tag)) {
+            rid = new BerInteger();
+            subCodeLength += rid.decode(is, false);
+            subCodeLength += berTag.decode(is);
+        } else {
+            throw new IOException("Tag does not match the mandatory sequence element tag.");
+        }
+
+        if (berTag.equals(Response.tag)) {
+            response = new Response();
+            subCodeLength += response.decode(is, false);
+            if (subCodeLength == totalLength) {
+                return codeLength;
+            }
+        }
+        throw new IOException("Unexpected end of sequence, length tag: " + totalLength + ", actual sequence length: " + subCodeLength);
+
+
+    }
+
+    public void encodeAndSave(int encodingSizeGuess) throws IOException {
+        BerByteArrayOutputStream os = new BerByteArrayOutputStream(encodingSizeGuess);
+        encode(os, false);
+        code = os.getArray();
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder("SEQUENCE{");
+        sb.append("provider: ").append(provider);
+
+        sb.append(", ");
+        sb.append("format: ").append(format);
+
+        sb.append(", ");
+        sb.append("rid: ").append(rid);
+
+        sb.append(", ");
+        sb.append("response: ").append(response);
+
+        sb.append("}");
+        return sb.toString();
+    }
+
     public static class Response {
 
         public static final BerTag tag = new BerTag(BerTag.UNIVERSAL_CLASS, BerTag.CONSTRUCTED, 16);
@@ -122,112 +256,6 @@ public class TrustResponse {
             return sb.toString();
         }
 
-    }
-
-    public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 3);
-
-    public byte[] code = null;
-    public BerInteger rid = null;
-    public Response response = null;
-
-    public TrustResponse() {
-    }
-
-    public TrustResponse(byte[] code) {
-        this.code = code;
-    }
-
-    public TrustResponse(BerInteger rid, Response response) {
-        this.rid = rid;
-        this.response = response;
-    }
-
-    public int encode(BerByteArrayOutputStream os) throws IOException {
-        return encode(os, true);
-    }
-
-    public int encode(BerByteArrayOutputStream os, boolean withTag) throws IOException {
-
-        if (code != null) {
-            for (int i = code.length - 1; i >= 0; i--) {
-                os.write(code[i]);
-            }
-            if (withTag) {
-                return tag.encode(os) + code.length;
-            }
-            return code.length;
-        }
-
-        int codeLength = 0;
-        codeLength += response.encode(os, true);
-
-        codeLength += rid.encode(os, true);
-
-        codeLength += BerLength.encodeLength(os, codeLength);
-
-        if (withTag) {
-            codeLength += tag.encode(os);
-        }
-
-        return codeLength;
-
-    }
-
-    public int decode(InputStream is) throws IOException {
-        return decode(is, true);
-    }
-
-    public int decode(InputStream is, boolean withTag) throws IOException {
-        int codeLength = 0;
-        int subCodeLength = 0;
-        BerTag berTag = new BerTag();
-
-        if (withTag) {
-            codeLength += tag.decodeAndCheck(is);
-        }
-
-        BerLength length = new BerLength();
-        codeLength += length.decode(is);
-
-        int totalLength = length.val;
-        codeLength += totalLength;
-
-        subCodeLength += berTag.decode(is);
-        if (berTag.equals(BerInteger.tag)) {
-            rid = new BerInteger();
-            subCodeLength += rid.decode(is, false);
-            subCodeLength += berTag.decode(is);
-        } else {
-            throw new IOException("Tag does not match the mandatory sequence element tag.");
-        }
-
-        if (berTag.equals(Response.tag)) {
-            response = new Response();
-            subCodeLength += response.decode(is, false);
-            if (subCodeLength == totalLength) {
-                return codeLength;
-            }
-        }
-        throw new IOException("Unexpected end of sequence, length tag: " + totalLength + ", actual sequence length: " + subCodeLength);
-
-
-    }
-
-    public void encodeAndSave(int encodingSizeGuess) throws IOException {
-        BerByteArrayOutputStream os = new BerByteArrayOutputStream(encodingSizeGuess);
-        encode(os, false);
-        code = os.getArray();
-    }
-
-    public String toString() {
-        StringBuilder sb = new StringBuilder("SEQUENCE{");
-        sb.append("rid: ").append(rid);
-
-        sb.append(", ");
-        sb.append("response: ").append(response);
-
-        sb.append("}");
-        return sb.toString();
     }
 
 }
