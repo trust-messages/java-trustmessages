@@ -69,6 +69,8 @@ public class TrustService implements Runnable, IncomingDataHandler {
     }
 
     public void run() {
+        LOG.info("Running Trust Service with {}", db.getClass().getSimpleName());
+
         while (true) {
             try {
                 final TrustMessage packet = queue.take();
