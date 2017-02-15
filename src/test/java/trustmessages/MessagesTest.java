@@ -1,8 +1,7 @@
 package trustmessages;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
 import org.openmuc.jasn1.ber.types.BerAny;
 import org.openmuc.jasn1.ber.types.BerEnum;
@@ -15,16 +14,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class MessagesTest extends TestCase {
-    public MessagesTest(String testName) {
-        super(testName);
-    }
+import static org.junit.Assert.assertEquals;
 
-    public static Test suite() {
-        return new TestSuite(MessagesTest.class);
-    }
+public class MessagesTest {
 
-    public void testDecimal() throws IOException {
+    @Test
+    public void decimal() throws IOException {
         final BerReal orig = new BerReal(0.7);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100,
                 true);
@@ -36,24 +31,23 @@ public class MessagesTest extends TestCase {
         assertEquals(orig.value, decoded.value, 0.001);
     }
 
-    public void testQuantitativeAssessmentFromPython() throws IOException {
+    @Test
+    public void quantitativeAssessmentFromPython() throws IOException {
         final byte[] q = Utils.decode("aR8TB2FAeC5jb20TB2JAeC5jb20TBWJ1eWVyAgFkAgEB");
         final Assessment m = new Assessment();
         m.decode(new ByteArrayInputStream(q), true);
     }
 
-    public void testSLAssessmentFromPython() throws IOException {
-        final byte[] q = Utils.decode("aTQTB2JAeC5jb20TB2NAeC5jb20TBmxldHRlcgIBZDAVCQUDN0UtMQkFAzJFLTEJBQMxRS0x");
-        final Assessment m = new Assessment();
+    @Test
+    @Ignore
+    public void SLFromPython() throws IOException {
+        final byte[] q = Utils.decode("MBUJBQMxRS0xCQUDMkUtMQkFAzdFLTE=");
+        final SL m = new SL();
         m.decode(new ByteArrayInputStream(q), true);
-
-        // TODO: The value does not decode!
-        // final SL bdu = new SL();
-        // bdu.decode(new ByteArrayInputStream(m.value.value));
-        // System.out.println(bdu);
     }
 
-    public void testSL() throws IOException {
+    @Test
+    public void SL() throws IOException {
         final SL orig = new SL(new BerReal(0.1), new BerReal(0.2), new BerReal(0.7));
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
@@ -68,7 +62,8 @@ public class MessagesTest extends TestCase {
         assertEquals(orig.u.value, decoded.u.value, 0.001);
     }
 
-    public void testQTM() throws IOException {
+    @Test
+    public void QTM() throws IOException {
         final QTM orig = new QTM(1);
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(3, true);
@@ -80,7 +75,8 @@ public class MessagesTest extends TestCase {
         assertEquals(orig.value, decoded.value);
     }
 
-    public void testQuantitativeAssessment() throws IOException {
+    @Test
+    public void quantitativeAssessment() throws IOException {
         final Assessment orig = new Assessment();
         orig.source = new Entity("alice".getBytes());
         orig.target = new Entity("bob".getBytes());
@@ -102,13 +98,15 @@ public class MessagesTest extends TestCase {
         assertEquals(orig.toString(), decoded.toString());
     }
 
-    public void testQualitativeAssessmentFromPython() throws IOException {
+    @Test
+    public void qualitativeAssessmentFromPython() throws IOException {
         final byte[] q = Utils.decode("aScTB2NAeC5jb20TB2FAeC5jb20TBnNlbGxlcgIBZBMIZGlzdHJ1c3Q");
         final Assessment m = new Assessment();
         m.decode(new ByteArrayInputStream(q), true);
     }
 
-    public void testQualitativeAssessment() throws IOException {
+    @Test
+    public void qualitativeAssessment() throws IOException {
         final Assessment orig = new Assessment();
         orig.source = new Entity("alice".getBytes());
         orig.target = new Entity("bob".getBytes());
@@ -129,13 +127,15 @@ public class MessagesTest extends TestCase {
         assertEquals(orig.toString(), decoded.toString());
     }
 
-    public void testAssessmentRequestFromPython() throws IOException {
+    @Test
+    public void assessmentRequestFromPython() throws IOException {
         final byte[] q = Utils.decode("ZgsCAQFkBgoBBUIBUA==");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
     }
 
-    public void testAssessmentRequest() throws IOException {
+    @Test
+    public void assessmentRequest() throws IOException {
         final AssessmentRequest ar = new AssessmentRequest(
                 new BerInteger(0),
                 Utils.getQuery("target = david@fri.si AND (service = seller OR service = letter)"));
@@ -150,13 +150,15 @@ public class MessagesTest extends TestCase {
         assertEquals(orig.toString(), decoded.toString());
     }
 
-    public void testAssessmentResponseFromPython() throws IOException {
+    @Test
+    public void assessmentResponseFromPython() throws IOException {
         final byte[] q = Utils.decode("Z1UTBGViYXkGAikBAgEBMEZpIRMHYkB4LmNvbRMHY0B4LmNvbRMGbGV0dGVyAgID6AIBBWkhEwdhQHguY29tEwdiQHguY29tEwZyZW50ZXICAgPoAgEF");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
     }
 
-    public void testAssessmentResponse() throws IOException {
+    @Test
+    public void assessmentResponse() throws IOException {
         final AssessmentResponse ar = new AssessmentResponse();
         ar.provider = new Entity("sometms".getBytes());
         ar.format = new Format(new int[]{1, 1, 1});
@@ -190,13 +192,15 @@ public class MessagesTest extends TestCase {
         assertEquals(orig.toString(), decoded.toString());
     }
 
-    public void testTrustRequestFromPython() throws IOException {
+    @Test
+    public void trustRequestFromPython() throws IOException {
         final byte[] q = Utils.decode("YgwCAhOIZAYKAQVCAVA=");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
     }
 
-    public void testTrustRequest() throws IOException {
+    @Test
+    public void trustRequest() throws IOException {
         final TrustRequest tr = new TrustRequest(
                 new BerInteger(0),
                 Utils.getQuery("target = david@fri.si AND (service = seller OR service = letter)"));
@@ -211,13 +215,15 @@ public class MessagesTest extends TestCase {
         assertEquals(orig.toString(), decoded.toString());
     }
 
-    public void testTrustResponseFromPython() throws IOException {
+    @Test
+    public void trustResponseFromPython() throws IOException {
         final byte[] q = Utils.decode("Y04TBGViYXkGAikBAgMBEXAwPWgdEwdjQHguY29tEwVidXllcgICB9ATB25ldXRyYWxoHBMHYUB4LmNvbRMGc2VsbGVyAgIH0BMFdHJ1c3Q=");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
     }
 
-    public void testTrustResponse() throws IOException {
+    @Test
+    public void trustResponse() throws IOException {
         final TrustResponse tr = new TrustResponse();
         tr.provider = new Entity("sometms".getBytes());
         tr.format = new Format(new int[]{1, 1, 1});
@@ -250,13 +256,15 @@ public class MessagesTest extends TestCase {
         assertEquals(orig.toString(), decoded.toString());
     }
 
-    public void testFormatRequestFromPython() throws IOException {
+    @Test
+    public void formatRequestFromPython() throws IOException {
         final byte[] q = Utils.decode("QAA=");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
     }
 
-    public void testFormatRequest() throws IOException {
+    @Test
+    public void formatRequest() throws IOException {
         final Message orig = new Message(null, null, null, null, new FormatRequest(), null, null);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(10, true);
         orig.encode(baos);
@@ -267,13 +275,15 @@ public class MessagesTest extends TestCase {
         assertEquals(orig.toString(), decoded.toString());
     }
 
-    public void testFormatResponseFromPython() throws IOException {
+    @Test
+    public void formatResponseFromPython() throws IOException {
         final byte[] q = Utils.decode("YVkGAioDEytIZXJlIGJlIGFuIEFTTi4xIHNwZWMgZm9yIGFzc2Vzc21lbnQgdmFsdWVzEyZIZXJlIGJlIGFuIEFTTi4xIHNwZWMgZm9yIHRydXN0IHZhbHVlcw==");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
     }
 
-    public void testFormatResponse() throws IOException {
+    @Test
+    public void formatResponse() throws IOException {
         final FormatResponse fr = new FormatResponse();
         fr.assessment = new BerPrintableString("Assessment format".getBytes());
         fr.trust = new BerPrintableString("Trust format".getBytes());
@@ -287,13 +297,15 @@ public class MessagesTest extends TestCase {
         assertEquals(orig.toString(), decoded.toString());
     }
 
-    public void testFaultFromPython() throws IOException {
+    @Test
+    public void faultFromPython() throws IOException {
         final byte[] q = Utils.decode("ahoKAQATFXNvbWV0aGluZyB3ZW50IHdyb25nIQ==");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
     }
 
-    public void testFault() throws IOException {
+    @Test
+    public void fault() throws IOException {
         final Fault f = new Fault(new BerEnum(0), new BerPrintableString("something went wrong!".getBytes()));
         final Message orig = new Message(null, null, null,
                 null, null, null, f);

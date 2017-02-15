@@ -1,8 +1,6 @@
 package trustmessages;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Test;
 import trustmessages.asn.*;
 import trustmessages.tms.InMemoryTrustDb;
 import trustmessages.tms.QTMDb;
@@ -12,19 +10,16 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 
-public class DbTest extends TestCase {
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class DbTest {
     private static final InMemoryTrustDb QTM_DB = new QTMDb();
     private static final InMemoryTrustDb SL_DB = new SLDb();
 
-    public DbTest(String testName) {
-        super(testName);
-    }
 
-    public static Test suite() {
-        return new TestSuite(DbTest.class);
-    }
-
-    public void testQTMTrustQuery() {
+    @Test
+    public void QTMTrustQuery() {
         final Query query = Utils.getQuery("(service = seller OR service = buyer) AND target = david");
         final List<Trust> trust = QTM_DB.getTrust(query);
         assertTrue(trust.size() > 0);
@@ -41,7 +36,8 @@ public class DbTest extends TestCase {
         });
     }
 
-    public void testQTMAssessmentQuery() {
+    @Test
+    public void QTMAssessmentQuery() {
         final List<Assessment> assessments = QTM_DB.getAssessments(
                 Utils.getQuery("(service = seller OR service = buyer) AND (target = david OR target = alice)"));
         assertTrue(assessments.size() > 0);
@@ -58,7 +54,8 @@ public class DbTest extends TestCase {
         });
     }
 
-    public void testSLTrustQuery() {
+    @Test
+    public void SLTrustQuery() {
         final List<Trust> trust = SL_DB.getTrust(
                 Utils.getQuery("(service = seller OR service = buyer) AND target = david"));
         assertTrue(trust.size() > 0);
@@ -75,7 +72,8 @@ public class DbTest extends TestCase {
         });
     }
 
-    public void testSLAssessmentQuery() {
+    @Test
+    public void SLAssessmentQuery() {
         final List<Assessment> assessments = SL_DB.getAssessments(
                 Utils.getQuery("(service = seller OR service = buyer) AND (target = david OR target = alice)"));
         assertTrue(assessments.size() > 0);
