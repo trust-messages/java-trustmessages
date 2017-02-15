@@ -12,6 +12,7 @@ import trustmessages.asn.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
@@ -39,11 +40,22 @@ public class MessagesTest {
     }
 
     @Test
-    @Ignore
-    public void SLFromPython() throws IOException {
-        final byte[] q = Utils.decode("MBUJBQMxRS0xCQUDMkUtMQkFAzdFLTE=");
-        final SL m = new SL();
+    public void QTMFromPython() throws IOException {
+        final byte[] q = Utils.decode("CgEE");
+        final QTM m = new QTM();
         m.decode(new ByteArrayInputStream(q), true);
+        assertEquals(m.value, BigInteger.valueOf(4L));
+    }
+
+    @Test
+    public void QTMAssessmentFromPython() throws IOException {
+        final byte[] q = Utils.decode("aSATB2FAeC5jb20TB2JAeC5jb20TBnJlbnRlcgIBZAoBBA==");
+        final Assessment m = new Assessment();
+        m.decode(new ByteArrayInputStream(q), true);
+
+        final QTM qtm = new QTM();
+        qtm.decode(new ByteArrayInputStream(m.value.value));
+        assertEquals(qtm.value, BigInteger.valueOf(4L));
     }
 
     @Test
@@ -60,6 +72,14 @@ public class MessagesTest {
         assertEquals(orig.b.value, decoded.b.value, 0.001);
         assertEquals(orig.d.value, decoded.d.value, 0.001);
         assertEquals(orig.u.value, decoded.u.value, 0.001);
+    }
+
+    @Test
+    @Ignore
+    public void SLFromPython() throws IOException {
+        final byte[] q = Utils.decode("MBUJBQMxRS0xCQUDMkUtMQkFAzdFLTE=");
+        final SL m = new SL();
+        m.decode(new ByteArrayInputStream(q), true);
     }
 
     @Test
