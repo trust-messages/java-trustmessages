@@ -65,7 +65,7 @@ public class DbTest {
             assertTrue(t.target.toString().equals("david"));
 
             try {
-                new SL().decode(new ByteArrayInputStream(t.value.value), false);
+                new SL().decode(new ByteArrayInputStream(t.value.value));
             } catch (IOException e) {
                 fail("Exception: " + e.getMessage());
             }
@@ -83,7 +83,7 @@ public class DbTest {
             assertTrue(t.target.toString().equals("david") || t.target.toString().equals("alice"));
 
             try {
-                new SL().decode(new ByteArrayInputStream(t.value.value), false);
+                new SL().decode(new ByteArrayInputStream(t.value.value));
             } catch (IOException e) {
                 fail("Exception: " + e.getMessage());
             }

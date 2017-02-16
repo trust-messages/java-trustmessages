@@ -1,5 +1,6 @@
 package trustmessages.tms;
 
+import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
 import org.openmuc.jasn1.ber.types.BerAny;
 import org.openmuc.jasn1.ber.types.BerReal;
 import trustmessages.asn.*;
@@ -42,14 +43,15 @@ public class SLDb extends InMemoryTrustDb {
                 t.date = new BinaryTime(TIME.next());
                 final Triple tv = VALUES.next();
                 final SL v = new SL(tv.b, tv.d, tv.u);
+                final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(64, true);
 
                 try {
-                    v.encodeAndSave(64);
+                    v.encode(baos, true);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
-                t.value = new BerAny(v.code);
+                t.value = new BerAny(baos.getArray());
                 TRUST.add(t);
             }
         }
@@ -68,14 +70,15 @@ public class SLDb extends InMemoryTrustDb {
                     a.date = new BinaryTime(TIME.next());
                     final Triple tv = VALUES.next();
                     final SL v = new SL(tv.b, tv.d, tv.u);
+                    final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(64, true);
 
                     try {
-                        v.encodeAndSave(34);
+                        v.encode(baos);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
 
-                    a.value = new BerAny(v.code);
+                    a.value = new BerAny(baos.getArray());
                     ASSESSMENTS.add(a);
                 }
             }

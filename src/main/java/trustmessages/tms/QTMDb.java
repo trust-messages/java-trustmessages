@@ -28,7 +28,7 @@ public class QTMDb extends InMemoryTrustDb {
                 final QTM v = new QTM(VALUES.next());
                 final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(3, true);
                 try {
-                    v.encode(baos, true);
+                    v.encode(baos);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

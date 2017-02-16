@@ -9,16 +9,33 @@ import org.openmuc.jasn1.ber.types.BerInteger;
 import org.openmuc.jasn1.ber.types.BerReal;
 import org.openmuc.jasn1.ber.types.string.BerPrintableString;
 import trustmessages.asn.*;
+import trustmessages.tms.SLDb;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Base64;
 
 import static org.junit.Assert.assertEquals;
 
 public class MessagesTest {
+
+    @Test
+    public void QTMAssessmentB64PrintQuery() throws IOException {
+        final AssessmentResponse ar = new AssessmentResponse();
+        ar.provider = new Entity("sometms".getBytes());
+        ar.format = new Format(new int[]{1, 1, 1});
+        ar.rid = new BerInteger(1);
+        ar.response = new AssessmentResponse.Response();
+        ar.response.seqOf = new SLDb().getAssessments(Utils.getQuery("source = bob AND target = alice"));
+
+        final Message orig = new Message(null, ar, null, null,
+                null, null, null);
+
+        final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
+        orig.encode(baos);
+        // System.out.println(Base64.getEncoder().encodeToString(baos.getArray()));
+    }
 
     @Test
     public void QTM() throws IOException {
@@ -73,7 +90,7 @@ public class MessagesTest {
         final byte[] q = Utils.decode("aScTB2NAeC5jb20TB2FAeC5jb20TBnNlbGxlcgIBZBMIZGlzdHJ1c3Q");
         final Assessment m = new Assessment();
         m.decode(new ByteArrayInputStream(q), true);
-        System.out.println(m);
+        // System.out.println(m);
     }
 
     @Test
@@ -256,7 +273,7 @@ public class MessagesTest {
         decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
 
         assertEquals(orig.toString(), decoded.toString());
-        System.out.println(Base64.getEncoder().encodeToString(baos.getArray()));
+        // System.out.println(Base64.getEncoder().encodeToString(baos.getArray()));
     }
 
     @Test
