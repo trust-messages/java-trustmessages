@@ -16,7 +16,7 @@ import java.io.InputStream;
 
 public class Fault {
 
-    public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 10);
+    public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 7);
 
     public byte[] code = null;
     public BerEnum value = null;

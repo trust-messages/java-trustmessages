@@ -7,6 +7,7 @@ package trustmessages.asn;
 import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
 import org.openmuc.jasn1.ber.BerLength;
 import org.openmuc.jasn1.ber.BerTag;
+import org.openmuc.jasn1.ber.types.BerEnum;
 import org.openmuc.jasn1.ber.types.BerInteger;
 
 import java.io.IOException;
@@ -16,24 +17,26 @@ import java.util.Iterator;
 import java.util.List;
 
 
-public class TrustResponse {
+public class DataResponse {
 
     public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 3);
     public byte[] code = null;
     public Entity provider = null;
     public Format format = null;
+    public BerEnum type = null;
     public BerInteger rid = null;
     public Response response = null;
-    public TrustResponse() {
+    public DataResponse() {
     }
 
-    public TrustResponse(byte[] code) {
+    public DataResponse(byte[] code) {
         this.code = code;
     }
 
-    public TrustResponse(Entity provider, Format format, BerInteger rid, Response response) {
+    public DataResponse(Entity provider, Format format, BerEnum type, BerInteger rid, Response response) {
         this.provider = provider;
         this.format = format;
+        this.type = type;
         this.rid = rid;
         this.response = response;
     }
@@ -58,6 +61,8 @@ public class TrustResponse {
         codeLength += response.encode(os, true);
 
         codeLength += rid.encode(os, true);
+
+        codeLength += type.encode(os, true);
 
         codeLength += format.encode(os, true);
 
@@ -109,6 +114,14 @@ public class TrustResponse {
             throw new IOException("Tag does not match the mandatory sequence element tag.");
         }
 
+        if (berTag.equals(BerEnum.tag)) {
+            type = new BerEnum();
+            subCodeLength += type.decode(is, false);
+            subCodeLength += berTag.decode(is);
+        } else {
+            throw new IOException("Tag does not match the mandatory sequence element tag.");
+        }
+
         if (berTag.equals(BerInteger.tag)) {
             rid = new BerInteger();
             subCodeLength += rid.decode(is, false);
@@ -143,6 +156,9 @@ public class TrustResponse {
         sb.append("format: ").append(format);
 
         sb.append(", ");
+        sb.append("type: ").append(type);
+
+        sb.append(", ");
         sb.append("rid: ").append(rid);
 
         sb.append(", ");
@@ -156,17 +172,17 @@ public class TrustResponse {
 
         public static final BerTag tag = new BerTag(BerTag.UNIVERSAL_CLASS, BerTag.CONSTRUCTED, 16);
         public byte[] code = null;
-        public List<Trust> seqOf = null;
+        public List<Data> seqOf = null;
 
         public Response() {
-            seqOf = new ArrayList<Trust>();
+            seqOf = new ArrayList<Data>();
         }
 
         public Response(byte[] code) {
             this.code = code;
         }
 
-        public Response(List<Trust> seqOf) {
+        public Response(List<Data> seqOf) {
             this.seqOf = seqOf;
         }
 
@@ -217,7 +233,7 @@ public class TrustResponse {
             int totalLength = length.val;
 
             while (subCodeLength < totalLength) {
-                Trust element = new Trust();
+                Data element = new Data();
                 subCodeLength += element.decode(is, true);
                 seqOf.add(element);
             }
@@ -242,7 +258,7 @@ public class TrustResponse {
             if (seqOf == null) {
                 sb.append("null");
             } else {
-                Iterator<Trust> it = seqOf.iterator();
+                Iterator<Data> it = seqOf.iterator();
                 if (it.hasNext()) {
                     sb.append(it.next());
                     while (it.hasNext()) {

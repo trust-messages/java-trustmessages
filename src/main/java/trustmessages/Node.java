@@ -1,9 +1,13 @@
 package trustmessages;
 
+import org.openmuc.jasn1.ber.types.BerEnum;
 import org.openmuc.jasn1.ber.types.BerInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import trustmessages.asn.*;
+import trustmessages.asn.DataRequest;
+import trustmessages.asn.FormatRequest;
+import trustmessages.asn.Message;
+import trustmessages.asn.Query;
 import trustmessages.socket.TrustSocket;
 import trustmessages.tms.TrustService;
 
@@ -74,15 +78,15 @@ public class Node {
                     socket.connect(InetAddress.getByName(address), port);
                 } else if (verb.equalsIgnoreCase("disconnect")) {
                     socket.disconnect(InetAddress.getByName(address), port);
-                } else if (verb.equalsIgnoreCase("treq")) {
+                } else if (verb.equalsIgnoreCase("treq") ||
+                        verb.equalsIgnoreCase("areq")) {
                     final Message request = new Message();
                     final Query query = Utils.getQuery(criteria);
-                    request.trustRequest = new TrustRequest(new BerInteger(random.nextInt()), query);
-                    socket.send(InetAddress.getByName(address), port, Utils.encode(request));
-                } else if (verb.equalsIgnoreCase("areq")) {
-                    final Message request = new Message();
-                    final Query query = Utils.getQuery(criteria);
-                    request.assessmentRequest = new AssessmentRequest(new BerInteger(random.nextInt()), query);
+                    request.dataRequest = new DataRequest(
+                            new BerInteger(random.nextInt()),
+                            // trust or assessment request?
+                            new BerEnum(verb.equalsIgnoreCase("treq") ? 0L : 1L),
+                            query);
                     socket.send(InetAddress.getByName(address), port, Utils.encode(request));
                 } else {
                     final Message request = new Message();

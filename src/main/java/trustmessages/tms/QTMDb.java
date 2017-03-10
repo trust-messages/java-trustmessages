@@ -6,35 +6,38 @@ import trustmessages.asn.*;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class QTMDb extends InMemoryTrustDb {
-    private static final List<Trust> TRUST = new ArrayList<>();
-    private static final List<Assessment> ASSESSMENTS = new ArrayList<>();
+    private static final List<Data> TRUST = new ArrayList<>();
+    private static final List<Data> ASSESSMENTS = new ArrayList<>();
     private static final Map<String, String> FORMAT = new HashMap<>();
 
     private static final Iterator<Integer> VALUES = IntStream.iterate(0, i -> (i + 1) % 5).iterator();
     private static final Format ID = new Format(new int[]{1, 1, 1});
 
     static {
-        for (String target : USERS) {
-            for (String service : SERVICES) {
-                final Trust t = new Trust();
-                t.target = new Entity(target.getBytes());
-                t.service = new Service(service.getBytes());
-                t.date = new BinaryTime(TIME.next());
+        for (String source : USERS) {
+            for (String target : USERS) {
+                for (String service : SERVICES) {
+                    final Data t = new Data();
+                    t.source = new Entity(source.getBytes());
+                    t.target = new Entity(target.getBytes());
+                    t.service = new Service(service.getBytes());
+                    t.date = new BinaryTime(TIME.next());
 
-                final QTM v = new QTM(VALUES.next());
-                final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(3, true);
-                try {
-                    v.encode(baos);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    final QTM v = new QTM(VALUES.next());
+                    final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(3, true);
+                    try {
+                        v.encode(baos);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    t.value = new BerAny(baos.getArray());
+                    TRUST.add(t);
                 }
-
-                t.value = new BerAny(baos.getArray());
-                TRUST.add(t);
             }
         }
 
@@ -45,7 +48,7 @@ public class QTMDb extends InMemoryTrustDb {
                 }
 
                 for (String service : SERVICES) {
-                    final Assessment a = new Assessment();
+                    final Data a = new Data();
                     a.source = new Entity(source.getBytes());
                     a.target = new Entity(target.getBytes());
                     a.service = new Service(service.getBytes());
@@ -75,17 +78,17 @@ public class QTMDb extends InMemoryTrustDb {
     }
 
     @Override
-    public List<Assessment> getAssessments(Query query) {
-        return ASSESSMENTS.stream().filter(createAssessmentPredicate(query)).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Trust> getTrust(Query query) {
-        return TRUST.stream().filter(createTrustPredicate(query)).collect(Collectors.toList());
-    }
-
-    @Override
     public Map<String, String> getFormat() {
         return FORMAT;
+    }
+
+    @Override
+    protected Stream<Data> allAssessments() {
+        return ASSESSMENTS.stream();
+    }
+
+    @Override
+    protected Stream<Data> allTrust() {
+        return TRUST.stream();
     }
 }

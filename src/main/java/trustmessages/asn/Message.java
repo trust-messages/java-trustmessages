@@ -14,10 +14,8 @@ import java.io.InputStream;
 public class Message {
 
     public byte[] code = null;
-    public AssessmentRequest assessmentRequest = null;
-    public AssessmentResponse assessmentResponse = null;
-    public TrustRequest trustRequest = null;
-    public TrustResponse trustResponse = null;
+    public DataRequest dataRequest = null;
+    public DataResponse dataResponse = null;
     public FormatRequest formatRequest = null;
     public FormatResponse formatResponse = null;
     public Fault fault = null;
@@ -29,11 +27,9 @@ public class Message {
         this.code = code;
     }
 
-    public Message(AssessmentRequest assessmentRequest, AssessmentResponse assessmentResponse, TrustRequest trustRequest, TrustResponse trustResponse, FormatRequest formatRequest, FormatResponse formatResponse, Fault fault) {
-        this.assessmentRequest = assessmentRequest;
-        this.assessmentResponse = assessmentResponse;
-        this.trustRequest = trustRequest;
-        this.trustResponse = trustResponse;
+    public Message(DataRequest dataRequest, DataResponse dataResponse, FormatRequest formatRequest, FormatResponse formatResponse, Fault fault) {
+        this.dataRequest = dataRequest;
+        this.dataResponse = dataResponse;
         this.formatRequest = formatRequest;
         this.formatResponse = formatResponse;
         this.fault = fault;
@@ -64,23 +60,13 @@ public class Message {
             return codeLength;
         }
 
-        if (trustResponse != null) {
-            codeLength += trustResponse.encode(os, true);
+        if (dataResponse != null) {
+            codeLength += dataResponse.encode(os, true);
             return codeLength;
         }
 
-        if (trustRequest != null) {
-            codeLength += trustRequest.encode(os, true);
-            return codeLength;
-        }
-
-        if (assessmentResponse != null) {
-            codeLength += assessmentResponse.encode(os, true);
-            return codeLength;
-        }
-
-        if (assessmentRequest != null) {
-            codeLength += assessmentRequest.encode(os, true);
+        if (dataRequest != null) {
+            codeLength += dataRequest.encode(os, true);
             return codeLength;
         }
 
@@ -101,27 +87,15 @@ public class Message {
             codeLength += berTag.decode(is);
         }
 
-        if (berTag.equals(AssessmentRequest.tag)) {
-            assessmentRequest = new AssessmentRequest();
-            codeLength += assessmentRequest.decode(is, false);
+        if (berTag.equals(DataRequest.tag)) {
+            dataRequest = new DataRequest();
+            codeLength += dataRequest.decode(is, false);
             return codeLength;
         }
 
-        if (berTag.equals(AssessmentResponse.tag)) {
-            assessmentResponse = new AssessmentResponse();
-            codeLength += assessmentResponse.decode(is, false);
-            return codeLength;
-        }
-
-        if (berTag.equals(TrustRequest.tag)) {
-            trustRequest = new TrustRequest();
-            codeLength += trustRequest.decode(is, false);
-            return codeLength;
-        }
-
-        if (berTag.equals(TrustResponse.tag)) {
-            trustResponse = new TrustResponse();
-            codeLength += trustResponse.decode(is, false);
+        if (berTag.equals(DataResponse.tag)) {
+            dataResponse = new DataResponse();
+            codeLength += dataResponse.decode(is, false);
             return codeLength;
         }
 
@@ -157,20 +131,12 @@ public class Message {
     }
 
     public String toString() {
-        if (assessmentRequest != null) {
-            return "CHOICE{assessmentRequest: " + assessmentRequest + "}";
+        if (dataRequest != null) {
+            return "CHOICE{dataRequest: " + dataRequest + "}";
         }
 
-        if (assessmentResponse != null) {
-            return "CHOICE{assessmentResponse: " + assessmentResponse + "}";
-        }
-
-        if (trustRequest != null) {
-            return "CHOICE{trustRequest: " + trustRequest + "}";
-        }
-
-        if (trustResponse != null) {
-            return "CHOICE{trustResponse: " + trustResponse + "}";
+        if (dataResponse != null) {
+            return "CHOICE{dataResponse: " + dataResponse + "}";
         }
 
         if (formatRequest != null) {

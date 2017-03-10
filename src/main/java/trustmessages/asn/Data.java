@@ -13,24 +13,26 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
-public class Trust {
+public class Data {
 
-    public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 8);
+    public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 4);
 
     public byte[] code = null;
+    public Entity source = null;
     public Entity target = null;
     public Service service = null;
     public BinaryTime date = null;
     public BerAny value = null;
 
-    public Trust() {
+    public Data() {
     }
 
-    public Trust(byte[] code) {
+    public Data(byte[] code) {
         this.code = code;
     }
 
-    public Trust(Entity target, Service service, BinaryTime date, BerAny value) {
+    public Data(Entity source, Entity target, Service service, BinaryTime date, BerAny value) {
+        this.source = source;
         this.target = target;
         this.service = service;
         this.date = date;
@@ -62,6 +64,8 @@ public class Trust {
 
         codeLength += target.encode(os, true);
 
+        codeLength += source.encode(os, true);
+
         codeLength += BerLength.encodeLength(os, codeLength);
 
         if (withTag) {
@@ -92,6 +96,14 @@ public class Trust {
         codeLength += totalLength;
 
         subCodeLength += berTag.decode(is);
+        if (berTag.equals(Entity.tag)) {
+            source = new Entity();
+            subCodeLength += source.decode(is, false);
+            subCodeLength += berTag.decode(is);
+        } else {
+            throw new IOException("Tag does not match the mandatory sequence element tag.");
+        }
+
         if (berTag.equals(Entity.tag)) {
             target = new Entity();
             subCodeLength += target.decode(is, false);
@@ -129,6 +141,9 @@ public class Trust {
 
     public String toString() {
         StringBuilder sb = new StringBuilder("SEQUENCE{");
+        sb.append("source: ").append(source);
+
+        sb.append(", ");
         sb.append("target: ").append(target);
 
         sb.append(", ");

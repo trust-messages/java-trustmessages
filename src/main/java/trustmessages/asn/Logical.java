@@ -15,7 +15,7 @@ import java.io.InputStream;
 
 public class Logical {
 
-    public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 5);
+    public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 6);
 
     public byte[] code = null;
     public BerEnum op = null;

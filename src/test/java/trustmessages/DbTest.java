@@ -1,7 +1,10 @@
 package trustmessages;
 
 import org.junit.Test;
-import trustmessages.asn.*;
+import trustmessages.asn.Data;
+import trustmessages.asn.QTM;
+import trustmessages.asn.Query;
+import trustmessages.asn.SL;
 import trustmessages.tms.InMemoryTrustDb;
 import trustmessages.tms.QTMDb;
 import trustmessages.tms.SLDb;
@@ -21,7 +24,7 @@ public class DbTest {
     @Test
     public void QTMTrustQuery() {
         final Query query = Utils.getQuery("(service = seller OR service = buyer) AND target = david");
-        final List<Trust> trust = QTM_DB.getTrust(query);
+        final List<Data> trust = QTM_DB.getTrust(query);
         assertTrue(trust.size() > 0);
 
         trust.forEach(t -> {
@@ -38,7 +41,7 @@ public class DbTest {
 
     @Test
     public void QTMAssessmentQuery() {
-        final List<Assessment> assessments = QTM_DB.getAssessments(
+        final List<Data> assessments = QTM_DB.getAssessments(
                 Utils.getQuery("(service = seller OR service = buyer) AND (target = david OR target = alice)"));
         assertTrue(assessments.size() > 0);
 
@@ -56,7 +59,7 @@ public class DbTest {
 
     @Test
     public void SLTrustQuery() {
-        final List<Trust> trust = SL_DB.getTrust(
+        final List<Data> trust = SL_DB.getTrust(
                 Utils.getQuery("(service = seller OR service = buyer) AND target = david"));
         assertTrue(trust.size() > 0);
 
@@ -74,7 +77,7 @@ public class DbTest {
 
     @Test
     public void SLAssessmentQuery() {
-        final List<Assessment> assessments = SL_DB.getAssessments(
+        final List<Data> assessments = SL_DB.getAssessments(
                 Utils.getQuery("(service = seller OR service = buyer) AND (target = david OR target = alice)"));
         assertTrue(assessments.size() > 0);
 

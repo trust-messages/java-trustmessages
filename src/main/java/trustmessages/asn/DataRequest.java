@@ -7,29 +7,32 @@ package trustmessages.asn;
 import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
 import org.openmuc.jasn1.ber.BerLength;
 import org.openmuc.jasn1.ber.BerTag;
+import org.openmuc.jasn1.ber.types.BerEnum;
 import org.openmuc.jasn1.ber.types.BerInteger;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 
-public class AssessmentRequest {
+public class DataRequest {
 
-    public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 6);
+    public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 2);
 
     public byte[] code = null;
     public BerInteger rid = null;
+    public BerEnum type = null;
     public Query query = null;
 
-    public AssessmentRequest() {
+    public DataRequest() {
     }
 
-    public AssessmentRequest(byte[] code) {
+    public DataRequest(byte[] code) {
         this.code = code;
     }
 
-    public AssessmentRequest(BerInteger rid, Query query) {
+    public DataRequest(BerInteger rid, BerEnum type, Query query) {
         this.rid = rid;
+        this.type = type;
         this.query = query;
     }
 
@@ -51,6 +54,8 @@ public class AssessmentRequest {
 
         int codeLength = 0;
         codeLength += query.encode(os);
+
+        codeLength += type.encode(os, true);
 
         codeLength += rid.encode(os, true);
 
@@ -92,6 +97,14 @@ public class AssessmentRequest {
             throw new IOException("Tag does not match the mandatory sequence element tag.");
         }
 
+        if (berTag.equals(BerEnum.tag)) {
+            type = new BerEnum();
+            subCodeLength += type.decode(is, false);
+            subCodeLength += berTag.decode(is);
+        } else {
+            throw new IOException("Tag does not match the mandatory sequence element tag.");
+        }
+
         query = new Query();
         subCodeLength += query.decode(is, berTag);
         if (subCodeLength == totalLength) {
@@ -111,6 +124,9 @@ public class AssessmentRequest {
     public String toString() {
         StringBuilder sb = new StringBuilder("SEQUENCE{");
         sb.append("rid: ").append(rid);
+
+        sb.append(", ");
+        sb.append("type: ").append(type);
 
         sb.append(", ");
         sb.append("query: ").append(query);

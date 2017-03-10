@@ -21,5 +21,5 @@ java -jar target/jasn1-1.0-SNAPSHOT-jar-with-dependencies.jar
 The messages can be generated with [OpenMUC jasn1-compiler.](https://www.openmuc.org/asn1/download)
 Once installed, run it against the messages file:
 
-* Core messages: `./jasn1-compiler -o "generated" -p "trustmessages.asn" -f ~/Development/python/py-trustmessages/messages.asn`
+* Core messages: `./jasn1-compiler -l -o "generated" -p "trustmessages.asn" -f ~/Development/python/py-trustmessages/messages.asn`
 * Sample trust formats: `./jasn1-compiler -p "trustmessages.asn" -f ~/Development/python/py-trustmessages/formats.asn`
