@@ -61,7 +61,7 @@ public class MessagesTest {
     @Test
     public void QTMAssessmentFromPython() throws IOException {
         final byte[] q = Utils.decode("ZCATB2JAeC5jb20TB2NAeC5jb20TBnNlbGxlcgIBZAoBBA==");
-        final Data m = new Data();
+        final Rating m = new Rating();
         m.decode(new ByteArrayInputStream(q), true);
 
         final QTM qtm = new QTM();
@@ -76,7 +76,7 @@ public class MessagesTest {
         final DataResponse m = new DataResponse();
         m.decode(new ByteArrayInputStream(q), true);
 
-        for (Data a : m.response.seqOf) {
+        for (Rating a : m.response.seqOf) {
             assertEquals(a.date.value, BigInteger.valueOf(1000L));
 
             final QTM qtm = new QTM();
@@ -88,13 +88,13 @@ public class MessagesTest {
     @Test
     public void qualitativeAssessmentFromPython() throws IOException {
         final byte[] q = Utils.decode("ZB8TB2FAeC5jb20TB2JAeC5jb20TBWJ1eWVyAgFkAgEB");
-        final Data m = new Data();
+        final Rating m = new Rating();
         m.decode(new ByteArrayInputStream(q));
     }
 
     @Test
     public void QTMAssessment() throws IOException {
-        final Data orig = new Data();
+        final Rating orig = new Rating();
         orig.source = new Entity("alice".getBytes());
         orig.target = new Entity("bob".getBytes());
         orig.service = new Service("seller".getBytes());
@@ -108,7 +108,7 @@ public class MessagesTest {
         final BerByteArrayOutputStream osMessage = new BerByteArrayOutputStream(32, true);
         orig.encode(osMessage, true);
 
-        final Data decoded = new Data();
+        final Rating decoded = new Rating();
         decoded.decode(new ByteArrayInputStream(osMessage.getArray()), true);
 
         assertEquals(orig.toString(), decoded.toString());
@@ -117,7 +117,7 @@ public class MessagesTest {
     @Test
     public void quantitativeAssessmentFromPython() throws IOException {
         final byte[] q = Utils.decode("ZB8TB2FAeC5jb20TB2JAeC5jb20TBWJ1eWVyAgFkAgEB");
-        final Data m = new Data();
+        final Rating m = new Rating();
         m.decode(new ByteArrayInputStream(q));
     }
 
@@ -148,7 +148,7 @@ public class MessagesTest {
 
     @Test
     public void SLData() throws IOException {
-        final Data orig = new Data();
+        final Rating orig = new Rating();
         orig.source = new Entity("alice".getBytes());
         orig.target = new Entity("bob".getBytes());
         orig.service = new Service("seller".getBytes());
@@ -163,7 +163,7 @@ public class MessagesTest {
         final BerByteArrayOutputStream osMessage = new BerByteArrayOutputStream(100, true);
         orig.encode(osMessage, true);
 
-        final Data decoded = new Data();
+        final Rating decoded = new Rating();
         decoded.decode(new ByteArrayInputStream(osMessage.getArray()));
 
         assertEquals(orig.toString(), decoded.toString());
@@ -213,7 +213,7 @@ public class MessagesTest {
         ar.response.seqOf = new ArrayList<>();
 
         for (int i = 0; i < 2; i++) {
-            final Data a = new Data();
+            final Rating a = new Rating();
             a.source = new Entity("alice".getBytes());
             a.target = new Entity("you@you.com".getBytes());
             a.service = new Service("seller".getBytes());
@@ -249,7 +249,7 @@ public class MessagesTest {
         ar.response.seqOf = new ArrayList<>();
 
         for (int i = 0; i < 2; i++) {
-            final Data a = new Data();
+            final Rating a = new Rating();
             a.source = new Entity("alice".getBytes());
             a.target = new Entity("you@you.com".getBytes());
             a.service = new Service("seller".getBytes());
@@ -319,7 +319,7 @@ public class MessagesTest {
         tr.response.seqOf = new ArrayList<>();
 
         for (int i = 0; i < 2; i++) {
-            final Data t = new Data();
+            final Rating t = new Rating();
             t.source = new Entity("bob".getBytes());
             t.target = new Entity("alice".getBytes());
             t.service = new Service("seller".getBytes());

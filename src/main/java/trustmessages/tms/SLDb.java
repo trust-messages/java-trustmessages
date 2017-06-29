@@ -11,8 +11,8 @@ import java.util.stream.Stream;
 
 public class SLDb extends InMemoryTrustDb {
     private static final Format ID = new Format(new int[]{2, 2, 2});
-    private static final List<Data> TRUST = new ArrayList<>();
-    private static final List<Data> ASSESSMENTS = new ArrayList<>();
+    private static final List<Rating> TRUST = new ArrayList<>();
+    private static final List<Rating> ASSESSMENTS = new ArrayList<>();
 
     private static final Map<String, String> FORMAT = new HashMap<>();
     private static final Random RANDOM = new Random();
@@ -37,7 +37,7 @@ public class SLDb extends InMemoryTrustDb {
         for (String source : USERS) {
             for (String target : USERS) {
                 for (String service : SERVICES) {
-                    final Data t = new Data();
+                    final Rating t = new Rating();
                     t.source = new Entity(source.getBytes());
                     t.target = new Entity(target.getBytes());
                     t.service = new Service(service.getBytes());
@@ -65,7 +65,7 @@ public class SLDb extends InMemoryTrustDb {
                 }
 
                 for (String service : SERVICES) {
-                    final Data a = new Data();
+                    final Rating a = new Rating();
                     a.source = new Entity(source.getBytes());
                     a.target = new Entity(target.getBytes());
                     a.service = new Service(service.getBytes());
@@ -101,12 +101,12 @@ public class SLDb extends InMemoryTrustDb {
     }
 
     @Override
-    protected Stream<Data> allAssessments() {
+    protected Stream<Rating> allAssessments() {
         return ASSESSMENTS.stream();
     }
 
     @Override
-    protected Stream<Data> allTrust() {
+    protected Stream<Rating> allTrust() {
         return TRUST.stream();
     }
 }

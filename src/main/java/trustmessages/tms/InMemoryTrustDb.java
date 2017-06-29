@@ -1,9 +1,9 @@
 package trustmessages.tms;
 
 
-import trustmessages.asn.Data;
 import trustmessages.asn.Format;
 import trustmessages.asn.Query;
+import trustmessages.asn.Rating;
 import trustmessages.asn.Value;
 
 import java.math.BigInteger;
@@ -35,23 +35,23 @@ public abstract class InMemoryTrustDb {
 
     public abstract Map<String, String> getFormat();
 
-    protected abstract Stream<Data> allAssessments();
+    protected abstract Stream<Rating> allAssessments();
 
-    protected abstract Stream<Data> allTrust();
+    protected abstract Stream<Rating> allTrust();
 
-    public List<Data> getAssessments(Query query) {
+    public List<Rating> getAssessments(Query query) {
         return allAssessments().filter(createPredicate(query)).collect(Collectors.toList());
     }
 
-    public List<Data> getTrust(Query query) {
+    public List<Rating> getTrust(Query query) {
         return allTrust().filter(createPredicate(query)).collect(Collectors.toList());
     }
 
 
-    public final Predicate<Data> createPredicate(Query query) {
+    public final Predicate<Rating> createPredicate(Query query) {
         if (query.log != null) {
-            final Predicate<Data> left = createPredicate(query.log.l);
-            final Predicate<Data> right = createPredicate(query.log.r);
+            final Predicate<Rating> left = createPredicate(query.log.l);
+            final Predicate<Rating> right = createPredicate(query.log.r);
 
             if (query.log.op.value.equals(BigInteger.ZERO)) { // and
                 return p -> left.and(right).test(p);

@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
-public class Data {
+public class Rating {
 
     public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 4);
 
@@ -24,14 +24,14 @@ public class Data {
     public BinaryTime date = null;
     public BerAny value = null;
 
-    public Data() {
+    public Rating() {
     }
 
-    public Data(byte[] code) {
+    public Rating(byte[] code) {
         this.code = code;
     }
 
-    public Data(Entity source, Entity target, Service service, BinaryTime date, BerAny value) {
+    public Rating(Entity source, Entity target, Service service, BinaryTime date, BerAny value) {
         this.source = source;
         this.target = target;
         this.service = service;
