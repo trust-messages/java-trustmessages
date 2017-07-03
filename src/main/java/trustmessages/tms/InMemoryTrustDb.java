@@ -31,9 +31,9 @@ public abstract class InMemoryTrustDb {
         COMPARATORS.put(5L, (a, b) -> a.compareTo(b) >= 0);
     }
 
-    public abstract Format getId();
+    public abstract Map<Type, Format> getId();
 
-    public abstract Map<String, String> getFormat();
+    public abstract Map<Type, String> getFormat();
 
     protected abstract Stream<Rating> allAssessments();
 

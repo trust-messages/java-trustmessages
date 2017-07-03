@@ -10,11 +10,11 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class SLDb extends InMemoryTrustDb {
-    private static final Format ID = new Format(new int[]{2, 2, 2});
     private static final List<Rating> TRUST = new ArrayList<>();
     private static final List<Rating> ASSESSMENTS = new ArrayList<>();
 
-    private static final Map<String, String> FORMAT = new HashMap<>();
+    private static final Map<Type, String> FORMAT = new HashMap<>();
+    private static final Map<Type, Format> ID = new HashMap<>();
     private static final Random RANDOM = new Random();
 
     private static final Iterator<Triple> VALUES = Stream.generate(() -> {
@@ -85,18 +85,20 @@ public class SLDb extends InMemoryTrustDb {
                 }
             }
         }
-        FORMAT.put("trust", "ValueFormat DEFINITIONS ::= BEGIN ValueFormat ::= " +
+        ID.put(Type.TRUST, new Format(new int[]{2, 2, 2}));
+        ID.put(Type.ASSESSMENT, ID.get(Type.TRUST));
+        FORMAT.put(Type.TRUST, "ValueFormat DEFINITIONS ::= BEGIN ValueFormat ::= " +
                 "SEQUENCE { b REAL, d REAL, u REAL } END");
-        FORMAT.put("assessment", FORMAT.get("trust"));
+        FORMAT.put(Type.ASSESSMENT, FORMAT.get(Type.TRUST));
     }
 
     @Override
-    public Format getId() {
+    public Map<Type, Format> getId() {
         return ID;
     }
 
     @Override
-    public Map<String, String> getFormat() {
+    public Map<Type, String> getFormat() {
         return FORMAT;
     }
 

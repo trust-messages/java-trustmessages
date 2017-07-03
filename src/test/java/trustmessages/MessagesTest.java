@@ -71,8 +71,8 @@ public class MessagesTest {
 
     @Test
     public void QTMDataResponseFromPython() throws IOException {
-        final byte[] q = Utils.decode("Y1gTBGViYXkGAikBCgEBAgEBMEZkIRMHYUB4LmNvbRMHYkB4LmN" +
-                "vbRMGbGV0dGVyAgID6AoBBGQhEwdjQHguY29tEwdhQHguY29tEwZyZW50ZXICAgPoCgEE");
+        final byte[] q = Utils.decode("Y1gCAQEGAikBCgEBEwRlYmF5MEZkIRMHYUB4LmNvbRMHYkB4LmNvbRMGbGV" +
+                "0dGVyAgID6AoBBGQhEwdjQHguY29tEwdhQHguY29tEwZyZW50ZXICAgPoCgEE");
         final DataResponse m = new DataResponse();
         m.decode(new ByteArrayInputStream(q), true);
 
@@ -196,8 +196,8 @@ public class MessagesTest {
 
     @Test
     public void assessmentResponseFromPython() throws IOException {
-        final byte[] q = Utils.decode("Y1gTBGViYXkGAikBCgEAAgEBMEZkIRMHYkB4LmNvbRMHY0B4LmNvbR" +
-                "MGbGV0dGVyAgID6AIBBWQhEwdhQHguY29tEwdiQHguY29tEwZyZW50ZXICAgPoAgEF");
+        final byte[] q = Utils.decode("Y1gCAQEGAikBCgEAEwRlYmF5MEZkIRMHYkB4LmNvbRMHY0B4LmNv" +
+                "bRMGbGV0dGVyAgID6AIBBWQhEwdhQHguY29tEwdiQHguY29tEwZyZW50ZXICAgPoAgEF");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
     }
@@ -301,9 +301,9 @@ public class MessagesTest {
 
     @Test
     public void trustResponseFromPython() throws IOException {
-        final byte[] q = Utils.decode("Y1gTBGViYXkGAikBCgEAAgEBMEZkI" +
-                "RMHYkB4LmNvbRMHY0B4LmNvbRMGbGV0dGVyAgID6AIBBWQhEwdhQHgu" +
-                "Y29tEwdiQHguY29tEwZyZW50ZXICAgPoAgEF");
+        final byte[] q = Utils.decode("Y1gCAQEGAikBCgEBEwRlYmF5MEZkIRMHYUB4Lm" +
+                "NvbRMHYkB4LmNvbRMGbGV0dGVyAgID6AoBBGQhEwdjQHguY29tEwdhQHguY29tE" +
+                "wZyZW50ZXICAgPoCgEE");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q));
     }
@@ -365,9 +365,9 @@ public class MessagesTest {
 
     @Test
     public void formatResponseFromPython() throws IOException {
-        final byte[] q = Utils.decode("YVwCAWQGAioDEytIZXJlIGJlIGFuIEFTTi4xIHNwZWMgZ" +
-                "m9yIGFzc2Vzc21lbnQgdmFsdWVzEyZIZXJlIGJlIGFuIEFTTi4xIHNwZWMgZm9yIHRydXN" +
-                "0IHZhbHVlcw==");
+        final byte[] q = Utils.decode("YWACAWQGAioDEytIZXJlIGJlIGFuIEFTTi4xIH" +
+                "NwZWMgZm9yIGFzc2Vzc21lbnQgdmFsdWVzBgIqAxMmSGVyZSBiZSBhbiBBU04uM" +
+                "SBzcGVjIGZvciB0cnVzdCB2YWx1ZXM=");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
     }
@@ -375,9 +375,10 @@ public class MessagesTest {
     @Test
     public void formatResponse() throws IOException {
         final FormatResponse fr = new FormatResponse();
-        fr.assessment = new BerPrintableString("Assessment format".getBytes());
-        fr.trust = new BerPrintableString("Trust format".getBytes());
-        fr.format = new Format(new int[]{1, 2, 3});
+        fr.assessmentId = new Format(new int[]{1, 2, 3});
+        fr.assessmentDef = new BerPrintableString("Assessment format".getBytes());
+        fr.trustDef = new BerPrintableString("Trust format".getBytes());
+        fr.trustId = new Format(new int[]{1, 2, 3});
         fr.rid = new BerInteger(10L);
         final Message orig = new Message(null, null, null, fr, null);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);

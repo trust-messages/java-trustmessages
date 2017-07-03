@@ -20,9 +20,10 @@ public class FormatResponse {
 
     public byte[] code = null;
     public BerInteger rid = null;
-    public Format format = null;
-    public BerPrintableString assessment = null;
-    public BerPrintableString trust = null;
+    public Format assessmentId = null;
+    public BerPrintableString assessmentDef = null;
+    public Format trustId = null;
+    public BerPrintableString trustDef = null;
 
     public FormatResponse() {
     }
@@ -31,11 +32,12 @@ public class FormatResponse {
         this.code = code;
     }
 
-    public FormatResponse(BerInteger rid, Format format, BerPrintableString assessment, BerPrintableString trust) {
+    public FormatResponse(BerInteger rid, Format assessmentId, BerPrintableString assessmentDef, Format trustId, BerPrintableString trustDef) {
         this.rid = rid;
-        this.format = format;
-        this.assessment = assessment;
-        this.trust = trust;
+        this.assessmentId = assessmentId;
+        this.assessmentDef = assessmentDef;
+        this.trustId = trustId;
+        this.trustDef = trustDef;
     }
 
     public int encode(BerByteArrayOutputStream os) throws IOException {
@@ -55,11 +57,13 @@ public class FormatResponse {
         }
 
         int codeLength = 0;
-        codeLength += trust.encode(os, true);
+        codeLength += trustDef.encode(os, true);
 
-        codeLength += assessment.encode(os, true);
+        codeLength += trustId.encode(os, true);
 
-        codeLength += format.encode(os, true);
+        codeLength += assessmentDef.encode(os, true);
+
+        codeLength += assessmentId.encode(os, true);
 
         codeLength += rid.encode(os, true);
 
@@ -102,24 +106,32 @@ public class FormatResponse {
         }
 
         if (berTag.equals(Format.tag)) {
-            format = new Format();
-            subCodeLength += format.decode(is, false);
+            assessmentId = new Format();
+            subCodeLength += assessmentId.decode(is, false);
             subCodeLength += berTag.decode(is);
         } else {
             throw new IOException("Tag does not match the mandatory sequence element tag.");
         }
 
         if (berTag.equals(BerPrintableString.tag)) {
-            assessment = new BerPrintableString();
-            subCodeLength += assessment.decode(is, false);
+            assessmentDef = new BerPrintableString();
+            subCodeLength += assessmentDef.decode(is, false);
+            subCodeLength += berTag.decode(is);
+        } else {
+            throw new IOException("Tag does not match the mandatory sequence element tag.");
+        }
+
+        if (berTag.equals(Format.tag)) {
+            trustId = new Format();
+            subCodeLength += trustId.decode(is, false);
             subCodeLength += berTag.decode(is);
         } else {
             throw new IOException("Tag does not match the mandatory sequence element tag.");
         }
 
         if (berTag.equals(BerPrintableString.tag)) {
-            trust = new BerPrintableString();
-            subCodeLength += trust.decode(is, false);
+            trustDef = new BerPrintableString();
+            subCodeLength += trustDef.decode(is, false);
             if (subCodeLength == totalLength) {
                 return codeLength;
             }
@@ -140,13 +152,16 @@ public class FormatResponse {
         sb.append("rid: ").append(rid);
 
         sb.append(", ");
-        sb.append("format: ").append(format);
+        sb.append("assessmentId: ").append(assessmentId);
 
         sb.append(", ");
-        sb.append("assessment: ").append(assessment);
+        sb.append("assessmentDef: ").append(assessmentDef);
 
         sb.append(", ");
-        sb.append("trust: ").append(trust);
+        sb.append("trustId: ").append(trustId);
+
+        sb.append(", ");
+        sb.append("trustDef: ").append(trustDef);
 
         sb.append("}");
         return sb.toString();

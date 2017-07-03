@@ -95,10 +95,10 @@ public class TrustService implements Runnable, IncomingDataHandler {
                     LOG.info("[data-request] ({}B): {} / {}", packet.data.length, incoming.dataRequest.type,
                             incoming.dataRequest.query);
                     final DataResponse response = new DataResponse(
-                            new Entity(name.getBytes()),
-                            db.getId(),
-                            incoming.dataRequest.type,
                             incoming.dataRequest.rid,
+                            db.getId().get(Type.fromEnum(incoming.dataRequest.type)),
+                            incoming.dataRequest.type,
+                            new Entity(name.getBytes()),
                             new DataResponse.Response());
                     // querying for trust or assessments?
                     response.response.seqOf = incoming.dataRequest.type.value.equals(BigInteger.ZERO) ?
@@ -109,9 +109,10 @@ public class TrustService implements Runnable, IncomingDataHandler {
                     LOG.info("[format-request] ({}B)", packet.data.length);
                     final FormatResponse fr = new FormatResponse();
                     fr.rid = new BerInteger(incoming.formatRequest.value);
-                    fr.format = db.getId();
-                    fr.assessment = new BerPrintableString(db.getFormat().get("assessment").getBytes());
-                    fr.trust = new BerPrintableString(db.getFormat().get("trust").getBytes());
+                    fr.assessmentId = db.getId().get(Type.ASSESSMENT);
+                    fr.assessmentDef = new BerPrintableString(db.getFormat().get(Type.ASSESSMENT).getBytes());
+                    fr.trustId = db.getId().get(Type.TRUST);
+                    fr.trustDef = new BerPrintableString(db.getFormat().get(Type.TRUST).getBytes());
                     outgoing.formatResponse = fr;
                 } else if (incoming.dataResponse != null) {
                     LOG.info("[data-response] ({}B): {} / ({}) {}",
