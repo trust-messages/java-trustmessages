@@ -7,6 +7,7 @@ package trustmessages.asn;
 import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
 import org.openmuc.jasn1.ber.BerLength;
 import org.openmuc.jasn1.ber.BerTag;
+import org.openmuc.jasn1.ber.types.BerInteger;
 import org.openmuc.jasn1.ber.types.string.BerPrintableString;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ public class FormatResponse {
     public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 1);
 
     public byte[] code = null;
+    public BerInteger rid = null;
     public Format format = null;
     public BerPrintableString assessment = null;
     public BerPrintableString trust = null;
@@ -29,7 +31,8 @@ public class FormatResponse {
         this.code = code;
     }
 
-    public FormatResponse(Format format, BerPrintableString assessment, BerPrintableString trust) {
+    public FormatResponse(BerInteger rid, Format format, BerPrintableString assessment, BerPrintableString trust) {
+        this.rid = rid;
         this.format = format;
         this.assessment = assessment;
         this.trust = trust;
@@ -57,6 +60,8 @@ public class FormatResponse {
         codeLength += assessment.encode(os, true);
 
         codeLength += format.encode(os, true);
+
+        codeLength += rid.encode(os, true);
 
         codeLength += BerLength.encodeLength(os, codeLength);
 
@@ -88,6 +93,14 @@ public class FormatResponse {
         codeLength += totalLength;
 
         subCodeLength += berTag.decode(is);
+        if (berTag.equals(BerInteger.tag)) {
+            rid = new BerInteger();
+            subCodeLength += rid.decode(is, false);
+            subCodeLength += berTag.decode(is);
+        } else {
+            throw new IOException("Tag does not match the mandatory sequence element tag.");
+        }
+
         if (berTag.equals(Format.tag)) {
             format = new Format();
             subCodeLength += format.decode(is, false);
@@ -124,6 +137,9 @@ public class FormatResponse {
 
     public String toString() {
         StringBuilder sb = new StringBuilder("SEQUENCE{");
+        sb.append("rid: ").append(rid);
+
+        sb.append(", ");
         sb.append("format: ").append(format);
 
         sb.append(", ");

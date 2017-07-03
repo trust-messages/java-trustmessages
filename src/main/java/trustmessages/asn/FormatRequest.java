@@ -6,13 +6,14 @@ package trustmessages.asn;
 
 import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
 import org.openmuc.jasn1.ber.BerTag;
-import org.openmuc.jasn1.ber.types.BerNull;
+import org.openmuc.jasn1.ber.types.BerInteger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 
 
-public class FormatRequest extends BerNull {
+public class FormatRequest extends BerInteger {
 
     public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.PRIMITIVE, 0);
 
@@ -21,6 +22,14 @@ public class FormatRequest extends BerNull {
 
     public FormatRequest(byte[] code) {
         super(code);
+    }
+
+    public FormatRequest(BigInteger value) {
+        super(value);
+    }
+
+    public FormatRequest(long value) {
+        super(value);
     }
 
     public int encode(BerByteArrayOutputStream os, boolean withTag) throws IOException {

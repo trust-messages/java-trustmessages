@@ -90,7 +90,7 @@ public class Node {
                     socket.send(InetAddress.getByName(address), port, Utils.encode(request));
                 } else {
                     final Message request = new Message();
-                    request.formatRequest = new FormatRequest();
+                    request.formatRequest = new FormatRequest(100);
                     socket.send(InetAddress.getByName(address), port, Utils.encode(request));
                 }
             } catch (IOException e) {

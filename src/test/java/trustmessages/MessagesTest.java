@@ -346,14 +346,14 @@ public class MessagesTest {
 
     @Test
     public void formatRequestFromPython() throws IOException {
-        final byte[] q = Utils.decode("QAA=");
+        final byte[] q = Utils.decode("QAFk");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
     }
 
     @Test
     public void formatRequest() throws IOException {
-        final Message orig = new Message(null, null, new FormatRequest(), null, null);
+        final Message orig = new Message(null, null, new FormatRequest(10L), null, null);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(10, true);
         orig.encode(baos);
 
@@ -365,8 +365,9 @@ public class MessagesTest {
 
     @Test
     public void formatResponseFromPython() throws IOException {
-        final byte[] q = Utils.decode("YVkGAioDEytIZXJlIGJlIGFuIEFTTi4xIHNwZWMgZm9yIGFzc2Vzc21lbnQgdmFsdWVzEyZ" +
-                "IZXJlIGJlIGFuIEFTTi4xIHNwZWMgZm9yIHRydXN0IHZhbHVlcw==");
+        final byte[] q = Utils.decode("YVwCAWQGAioDEytIZXJlIGJlIGFuIEFTTi4xIHNwZWMgZ" +
+                "m9yIGFzc2Vzc21lbnQgdmFsdWVzEyZIZXJlIGJlIGFuIEFTTi4xIHNwZWMgZm9yIHRydXN" +
+                "0IHZhbHVlcw==");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
     }
@@ -377,6 +378,7 @@ public class MessagesTest {
         fr.assessment = new BerPrintableString("Assessment format".getBytes());
         fr.trust = new BerPrintableString("Trust format".getBytes());
         fr.format = new Format(new int[]{1, 2, 3});
+        fr.rid = new BerInteger(10L);
         final Message orig = new Message(null, null, null, fr, null);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos);
@@ -388,14 +390,14 @@ public class MessagesTest {
 
     @Test
     public void faultFromPython() throws IOException {
-        final byte[] q = Utils.decode("ZxoKAQATFXNvbWV0aGluZyB3ZW50IHdyb25nIQ==");
+        final byte[] q = Utils.decode("Zx0CAQoKAQATFXNvbWV0aGluZyB3ZW50IHdyb25nIQ==");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q), null);
     }
 
     @Test
     public void fault() throws IOException {
-        final Fault f = new Fault(new BerEnum(0), new BerPrintableString("something went wrong!".getBytes()));
+        final Fault f = new Fault(new BerInteger(10), new BerEnum(0), new BerPrintableString("something went wrong!".getBytes()));
         final Message orig = new Message(null, null, null, null, f);
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos);
