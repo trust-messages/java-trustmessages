@@ -14,8 +14,8 @@ import java.io.InputStream;
 public class Query {
 
     public byte[] code = null;
-    public Comparison cmp = null;
-    public Logical log = null;
+    public Constraint con = null;
+    public Expression exp = null;
 
     public Query() {
     }
@@ -24,9 +24,9 @@ public class Query {
         this.code = code;
     }
 
-    public Query(Comparison cmp, Logical log) {
-        this.cmp = cmp;
-        this.log = log;
+    public Query(Constraint con, Expression exp) {
+        this.con = con;
+        this.exp = exp;
     }
 
     public int encode(BerByteArrayOutputStream os) throws IOException {
@@ -39,13 +39,13 @@ public class Query {
         }
 
         int codeLength = 0;
-        if (log != null) {
-            codeLength += log.encode(os, true);
+        if (exp != null) {
+            codeLength += exp.encode(os, true);
             return codeLength;
         }
 
-        if (cmp != null) {
-            codeLength += cmp.encode(os, true);
+        if (con != null) {
+            codeLength += con.encode(os, true);
             return codeLength;
         }
 
@@ -66,15 +66,15 @@ public class Query {
             codeLength += berTag.decode(is);
         }
 
-        if (berTag.equals(Comparison.tag)) {
-            cmp = new Comparison();
-            codeLength += cmp.decode(is, false);
+        if (berTag.equals(Constraint.tag)) {
+            con = new Constraint();
+            codeLength += con.decode(is, false);
             return codeLength;
         }
 
-        if (berTag.equals(Logical.tag)) {
-            log = new Logical();
-            codeLength += log.decode(is, false);
+        if (berTag.equals(Expression.tag)) {
+            exp = new Expression();
+            codeLength += exp.decode(is, false);
             return codeLength;
         }
 
@@ -92,12 +92,12 @@ public class Query {
     }
 
     public String toString() {
-        if (cmp != null) {
-            return "CHOICE{cmp: " + cmp + "}";
+        if (con != null) {
+            return "CHOICE{con: " + con + "}";
         }
 
-        if (log != null) {
-            return "CHOICE{log: " + log + "}";
+        if (exp != null) {
+            return "CHOICE{exp: " + exp + "}";
         }
 
         return "unknown";

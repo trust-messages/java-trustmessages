@@ -21,8 +21,8 @@ public class Visitor extends QueryBaseVisitor<Query> {
     @Override
     public Query visitComparison(QueryParser.ComparisonContext ctx) {
         final Query q = new Query();
-        q.cmp = new Comparison();
-        q.cmp.op = new BerEnum(OPERATORS.get(ctx.OP().getSymbol().getText()));
+        q.con = new Constraint();
+        q.con.operator = new BerEnum(OPERATORS.get(ctx.OP().getSymbol().getText()));
 
         Entity source = null, target = null;
         BinaryTime date = null;
@@ -46,7 +46,7 @@ public class Visitor extends QueryBaseVisitor<Query> {
                 throw new Error("Should not happen!");
         }
 
-        q.cmp.value = new Value(source, target, date, service);
+        q.con.value = new Value(source, target, date, service);
 
         return q;
     }
@@ -54,20 +54,20 @@ public class Visitor extends QueryBaseVisitor<Query> {
     @Override
     public Query visitAnd(QueryParser.AndContext ctx) {
         final Query q = new Query();
-        q.log = new Logical();
-        q.log.op = new BerEnum(0);
-        q.log.l = visit(ctx.expr(0));
-        q.log.r = visit(ctx.expr(1));
+        q.exp = new Expression();
+        q.exp.operator = new BerEnum(0);
+        q.exp.left = visit(ctx.expr(0));
+        q.exp.right = visit(ctx.expr(1));
         return q;
     }
 
     @Override
     public Query visitOr(QueryParser.OrContext ctx) {
         final Query q = new Query();
-        q.log = new Logical();
-        q.log.op = new BerEnum(1);
-        q.log.l = visit(ctx.expr(0));
-        q.log.r = visit(ctx.expr(1));
+        q.exp = new Expression();
+        q.exp.operator = new BerEnum(1);
+        q.exp.left = visit(ctx.expr(0));
+        q.exp.right = visit(ctx.expr(1));
         return q;
     }
 

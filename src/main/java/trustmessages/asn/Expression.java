@@ -13,26 +13,26 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
-public class Logical {
+public class Expression {
 
     public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 6);
 
     public byte[] code = null;
-    public BerEnum op = null;
-    public Query l = null;
-    public Query r = null;
+    public BerEnum operator = null;
+    public Query left = null;
+    public Query right = null;
 
-    public Logical() {
+    public Expression() {
     }
 
-    public Logical(byte[] code) {
+    public Expression(byte[] code) {
         this.code = code;
     }
 
-    public Logical(BerEnum op, Query l, Query r) {
-        this.op = op;
-        this.l = l;
-        this.r = r;
+    public Expression(BerEnum operator, Query left, Query right) {
+        this.operator = operator;
+        this.left = left;
+        this.right = right;
     }
 
     public int encode(BerByteArrayOutputStream os) throws IOException {
@@ -52,11 +52,11 @@ public class Logical {
         }
 
         int codeLength = 0;
-        codeLength += r.encode(os);
+        codeLength += right.encode(os);
 
-        codeLength += l.encode(os);
+        codeLength += left.encode(os);
 
-        codeLength += op.encode(os, true);
+        codeLength += operator.encode(os, true);
 
         codeLength += BerLength.encodeLength(os, codeLength);
 
@@ -89,19 +89,19 @@ public class Logical {
 
         subCodeLength += berTag.decode(is);
         if (berTag.equals(BerEnum.tag)) {
-            op = new BerEnum();
-            subCodeLength += op.decode(is, false);
+            operator = new BerEnum();
+            subCodeLength += operator.decode(is, false);
             subCodeLength += berTag.decode(is);
         } else {
             throw new IOException("Tag does not match the mandatory sequence element tag.");
         }
 
-        l = new Query();
-        subCodeLength += l.decode(is, berTag);
+        left = new Query();
+        subCodeLength += left.decode(is, berTag);
         subCodeLength += berTag.decode(is);
 
-        r = new Query();
-        subCodeLength += r.decode(is, berTag);
+        right = new Query();
+        subCodeLength += right.decode(is, berTag);
         if (subCodeLength == totalLength) {
             return codeLength;
         }
@@ -118,13 +118,13 @@ public class Logical {
 
     public String toString() {
         StringBuilder sb = new StringBuilder("SEQUENCE{");
-        sb.append("op: ").append(op);
+        sb.append("operator: ").append(operator);
 
         sb.append(", ");
-        sb.append("l: ").append(l);
+        sb.append("left: ").append(left);
 
         sb.append(", ");
-        sb.append("r: ").append(r);
+        sb.append("right: ").append(right);
 
         sb.append("}");
         return sb.toString();

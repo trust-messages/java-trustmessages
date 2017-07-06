@@ -13,23 +13,23 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
-public class Comparison {
+public class Constraint {
 
     public static final BerTag tag = new BerTag(BerTag.APPLICATION_CLASS, BerTag.CONSTRUCTED, 5);
 
     public byte[] code = null;
-    public BerEnum op = null;
+    public BerEnum operator = null;
     public Value value = null;
 
-    public Comparison() {
+    public Constraint() {
     }
 
-    public Comparison(byte[] code) {
+    public Constraint(byte[] code) {
         this.code = code;
     }
 
-    public Comparison(BerEnum op, Value value) {
-        this.op = op;
+    public Constraint(BerEnum operator, Value value) {
+        this.operator = operator;
         this.value = value;
     }
 
@@ -52,7 +52,7 @@ public class Comparison {
         int codeLength = 0;
         codeLength += value.encode(os);
 
-        codeLength += op.encode(os, true);
+        codeLength += operator.encode(os, true);
 
         codeLength += BerLength.encodeLength(os, codeLength);
 
@@ -85,8 +85,8 @@ public class Comparison {
 
         subCodeLength += berTag.decode(is);
         if (berTag.equals(BerEnum.tag)) {
-            op = new BerEnum();
-            subCodeLength += op.decode(is, false);
+            operator = new BerEnum();
+            subCodeLength += operator.decode(is, false);
             subCodeLength += berTag.decode(is);
         } else {
             throw new IOException("Tag does not match the mandatory sequence element tag.");
@@ -110,7 +110,7 @@ public class Comparison {
 
     public String toString() {
         StringBuilder sb = new StringBuilder("SEQUENCE{");
-        sb.append("op: ").append(op);
+        sb.append("operator: ").append(operator);
 
         sb.append(", ");
         sb.append("value: ").append(value);

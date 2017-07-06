@@ -49,19 +49,19 @@ public abstract class InMemoryTrustDb {
 
 
     public final Predicate<Rating> createPredicate(Query query) {
-        if (query.log != null) {
-            final Predicate<Rating> left = createPredicate(query.log.l);
-            final Predicate<Rating> right = createPredicate(query.log.r);
+        if (query.exp != null) {
+            final Predicate<Rating> left = createPredicate(query.exp.left);
+            final Predicate<Rating> right = createPredicate(query.exp.right);
 
-            if (query.log.op.value.equals(BigInteger.ZERO)) { // and
+            if (query.exp.operator.value.equals(BigInteger.ZERO)) { // and
                 return p -> left.and(right).test(p);
             } else { // or
                 return p -> left.or(right).test(p);
             }
         } else {
-            final Value value = query.cmp.value;
+            final Value value = query.con.value;
             final BiPredicate<? super Comparable, ? super Comparable> comparator =
-                    COMPARATORS.get(query.cmp.op.value.longValue());
+                    COMPARATORS.get(query.con.operator.value.longValue());
 
             if (value.date != null) {
                 return p -> comparator.test(p.date.value, value.date.value);
