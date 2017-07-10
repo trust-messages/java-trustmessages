@@ -1,4 +1,4 @@
-package trustmessages.antlr;// Generated from /home/david/Development/java/jasn1/src/main/resources/Query.g4 by ANTLR 4.5.3
+package trustmessages.antlr;// Generated from Query.g4 by ANTLR 4.6
 
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 

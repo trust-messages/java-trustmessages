@@ -1,4 +1,5 @@
-package trustmessages.antlr;// Generated from /home/david/Development/java/jasn1/src/main/resources/Query.g4 by ANTLR 4.5.3
+// Generated from Query.g4 by ANTLR 4.6
+package trustmessages.antlr;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.ATN;
@@ -10,7 +11,7 @@ import org.antlr.v4.runtime.dfa.DFA;
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class QueryLexer extends Lexer {
     static {
-        RuntimeMetaData.checkVersion("4.5.3", RuntimeMetaData.VERSION);
+        RuntimeMetaData.checkVersion("4.6", RuntimeMetaData.VERSION);
     }
 
     protected static final DFA[] _decisionToDFA;
@@ -74,7 +75,7 @@ public class QueryLexer extends Lexer {
 
     @Override
     public String getGrammarFileName() {
-        return "trustmessages/antlr/Query.g4";
+        return "Query.g4";
     }
 
     @Override

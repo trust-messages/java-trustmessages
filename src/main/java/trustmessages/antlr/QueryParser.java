@@ -1,4 +1,5 @@
-package trustmessages.antlr;// Generated from /home/david/Development/java/jasn1/src/main/resources/Query.g4 by ANTLR 4.5.3
+// Generated from Query.g4 by ANTLR 4.6
+package trustmessages.antlr;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.ATN;
@@ -6,7 +7,6 @@ import org.antlr.v4.runtime.atn.ATNDeserializer;
 import org.antlr.v4.runtime.atn.ParserATNSimulator;
 import org.antlr.v4.runtime.atn.PredictionContextCache;
 import org.antlr.v4.runtime.dfa.DFA;
-import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -15,7 +15,7 @@ import java.util.List;
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class QueryParser extends Parser {
     static {
-        RuntimeMetaData.checkVersion("4.5.3", RuntimeMetaData.VERSION);
+        RuntimeMetaData.checkVersion("4.6", RuntimeMetaData.VERSION);
     }
 
     protected static final DFA[] _decisionToDFA;
@@ -71,7 +71,7 @@ public class QueryParser extends Parser {
 
     @Override
     public String getGrammarFileName() {
-        return "trustmessages/antlr/Query.g4";
+        return "Query.g4";
     }
 
     @Override
@@ -130,16 +130,6 @@ public class QueryParser extends Parser {
         }
 
         @Override
-        public void enterRule(ParseTreeListener listener) {
-            if (listener instanceof QueryListener) ((QueryListener) listener).enterComparison(this);
-        }
-
-        @Override
-        public void exitRule(ParseTreeListener listener) {
-            if (listener instanceof QueryListener) ((QueryListener) listener).exitComparison(this);
-        }
-
-        @Override
         public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
             if (visitor instanceof QueryVisitor) return ((QueryVisitor<? extends T>) visitor).visitComparison(this);
             else return visitor.visitChildren(this);
@@ -157,16 +147,6 @@ public class QueryParser extends Parser {
 
         public OrContext(ExprContext ctx) {
             copyFrom(ctx);
-        }
-
-        @Override
-        public void enterRule(ParseTreeListener listener) {
-            if (listener instanceof QueryListener) ((QueryListener) listener).enterOr(this);
-        }
-
-        @Override
-        public void exitRule(ParseTreeListener listener) {
-            if (listener instanceof QueryListener) ((QueryListener) listener).exitOr(this);
         }
 
         @Override
@@ -190,16 +170,6 @@ public class QueryParser extends Parser {
         }
 
         @Override
-        public void enterRule(ParseTreeListener listener) {
-            if (listener instanceof QueryListener) ((QueryListener) listener).enterAnd(this);
-        }
-
-        @Override
-        public void exitRule(ParseTreeListener listener) {
-            if (listener instanceof QueryListener) ((QueryListener) listener).exitAnd(this);
-        }
-
-        @Override
         public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
             if (visitor instanceof QueryVisitor) return ((QueryVisitor<? extends T>) visitor).visitAnd(this);
             else return visitor.visitChildren(this);
@@ -213,16 +183,6 @@ public class QueryParser extends Parser {
 
         public ParenthesisContext(ExprContext ctx) {
             copyFrom(ctx);
-        }
-
-        @Override
-        public void enterRule(ParseTreeListener listener) {
-            if (listener instanceof QueryListener) ((QueryListener) listener).enterParenthesis(this);
-        }
-
-        @Override
-        public void exitRule(ParseTreeListener listener) {
-            if (listener instanceof QueryListener) ((QueryListener) listener).exitParenthesis(this);
         }
 
         @Override
@@ -248,6 +208,7 @@ public class QueryParser extends Parser {
             enterOuterAlt(_localctx, 1);
             {
                 setState(10);
+                _errHandler.sync(this);
                 switch (_input.LA(1)) {
                     case FIELD: {
                         _localctx = new ComparisonContext(_localctx);
