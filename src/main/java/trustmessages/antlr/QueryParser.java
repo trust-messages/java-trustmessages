@@ -112,30 +112,6 @@ public class QueryParser extends Parser {
         }
     }
 
-    public static class ComparisonContext extends ExprContext {
-        public TerminalNode FIELD() {
-            return getToken(QueryParser.FIELD, 0);
-        }
-
-        public TerminalNode OP() {
-            return getToken(QueryParser.OP, 0);
-        }
-
-        public TerminalNode VALUE() {
-            return getToken(QueryParser.VALUE, 0);
-        }
-
-        public ComparisonContext(ExprContext ctx) {
-            copyFrom(ctx);
-        }
-
-        @Override
-        public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-            if (visitor instanceof QueryVisitor) return ((QueryVisitor<? extends T>) visitor).visitComparison(this);
-            else return visitor.visitChildren(this);
-        }
-    }
-
     public static class OrContext extends ExprContext {
         public List<ExprContext> expr() {
             return getRuleContexts(ExprContext.class);
@@ -176,6 +152,30 @@ public class QueryParser extends Parser {
         }
     }
 
+    public static class ConstraintContext extends ExprContext {
+        public TerminalNode FIELD() {
+            return getToken(QueryParser.FIELD, 0);
+        }
+
+        public TerminalNode OP() {
+            return getToken(QueryParser.OP, 0);
+        }
+
+        public TerminalNode VALUE() {
+            return getToken(QueryParser.VALUE, 0);
+        }
+
+        public ConstraintContext(ExprContext ctx) {
+            copyFrom(ctx);
+        }
+
+        @Override
+        public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+            if (visitor instanceof QueryVisitor) return ((QueryVisitor<? extends T>) visitor).visitConstraint(this);
+            else return visitor.visitChildren(this);
+        }
+    }
+
     public static class ParenthesisContext extends ExprContext {
         public ExprContext expr() {
             return getRuleContext(ExprContext.class, 0);
@@ -211,7 +211,7 @@ public class QueryParser extends Parser {
                 _errHandler.sync(this);
                 switch (_input.LA(1)) {
                     case FIELD: {
-                        _localctx = new ComparisonContext(_localctx);
+                        _localctx = new ConstraintContext(_localctx);
                         _ctx = _localctx;
                         _prevctx = _localctx;
 

@@ -1,4 +1,5 @@
-package trustmessages.antlr;// Generated from Query.g4 by ANTLR 4.6
+// Generated from Query.g4 by ANTLR 4.6
+package trustmessages.antlr;
 
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
@@ -18,17 +19,6 @@ public class QueryBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements 
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override
-    public T visitComparison(QueryParser.ComparisonContext ctx) {
-        return visitChildren(ctx);
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override
     public T visitOr(QueryParser.OrContext ctx) {
         return visitChildren(ctx);
     }
@@ -41,6 +31,17 @@ public class QueryBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements 
      */
     @Override
     public T visitAnd(QueryParser.AndContext ctx) {
+        return visitChildren(ctx);
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * <p>The default implementation returns the result of calling
+     * {@link #visitChildren} on {@code ctx}.</p>
+     */
+    @Override
+    public T visitConstraint(QueryParser.ConstraintContext ctx) {
         return visitChildren(ctx);
     }
 

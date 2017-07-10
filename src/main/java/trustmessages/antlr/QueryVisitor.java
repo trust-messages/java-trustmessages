@@ -1,4 +1,5 @@
-package trustmessages.antlr;// Generated from Query.g4 by ANTLR 4.6
+// Generated from Query.g4 by ANTLR 4.6
+package trustmessages.antlr;
 
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -10,15 +11,6 @@ import org.antlr.v4.runtime.tree.ParseTreeVisitor;
  *            operations with no return type.
  */
 public interface QueryVisitor<T> extends ParseTreeVisitor<T> {
-    /**
-     * Visit a parse tree produced by the {@code comparison}
-     * labeled alternative in {@link QueryParser#expr}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    T visitComparison(QueryParser.ComparisonContext ctx);
-
     /**
      * Visit a parse tree produced by the {@code or}
      * labeled alternative in {@link QueryParser#expr}.
@@ -36,6 +28,15 @@ public interface QueryVisitor<T> extends ParseTreeVisitor<T> {
      * @return the visitor result
      */
     T visitAnd(QueryParser.AndContext ctx);
+
+    /**
+     * Visit a parse tree produced by the {@code constraint}
+     * labeled alternative in {@link QueryParser#expr}.
+     *
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    T visitConstraint(QueryParser.ConstraintContext ctx);
 
     /**
      * Visit a parse tree produced by the {@code parenthesis}

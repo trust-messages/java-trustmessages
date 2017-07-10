@@ -19,7 +19,7 @@ public class Visitor extends QueryBaseVisitor<Query> {
     }
 
     @Override
-    public Query visitComparison(QueryParser.ComparisonContext ctx) {
+    public Query visitConstraint(QueryParser.ConstraintContext ctx) {
         final Query q = new Query();
         q.con = new Constraint();
         q.con.operator = new BerEnum(OPERATORS.get(ctx.OP().getSymbol().getText()));
