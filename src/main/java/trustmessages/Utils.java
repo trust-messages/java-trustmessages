@@ -10,6 +10,7 @@ import trustmessages.antlr.QueryLexer;
 import trustmessages.antlr.QueryParser;
 import trustmessages.antlr.Visitor;
 import trustmessages.asn.DataRequest;
+import trustmessages.asn.FormatRequest;
 import trustmessages.asn.Message;
 import trustmessages.asn.Query;
 
@@ -31,7 +32,10 @@ public class Utils {
                 new BerEnum(0),
                 getQuery("source = david AND (service = seller OR service = letter) AND (target = balu OR target = aleks)")
         );
-        final Message m = new Message(dataRequest, null, null, null, null);
+        final Message m = new Message(
+                new BerInteger(1L),
+                new Message.Payload(null, null,
+                        new FormatRequest(10L), null, null));
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         m.encode(baos);
@@ -62,7 +66,7 @@ public class Utils {
 
     public static Message decode(byte[] bytes) throws IOException {
         final Message message = new Message();
-        message.decode(new ByteArrayInputStream(bytes), null);
+        message.decode(new ByteArrayInputStream(bytes));
         return message;
     }
 }

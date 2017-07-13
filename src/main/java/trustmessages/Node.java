@@ -81,8 +81,10 @@ public class Node {
                 } else if (verb.equalsIgnoreCase("treq") ||
                         verb.equalsIgnoreCase("areq")) {
                     final Message request = new Message();
+                    request.version = new BerInteger(1L);
                     final Query query = Utils.getQuery(criteria);
-                    request.dataRequest = new DataRequest(
+                    request.payload = new Message.Payload();
+                    request.payload.dataRequest = new DataRequest(
                             new BerInteger(random.nextInt()),
                             // trust or assessment request?
                             new BerEnum(verb.equalsIgnoreCase("treq") ? 0L : 1L),
@@ -90,7 +92,9 @@ public class Node {
                     socket.send(InetAddress.getByName(address), port, Utils.encode(request));
                 } else {
                     final Message request = new Message();
-                    request.formatRequest = new FormatRequest(100);
+                    request.version = new BerInteger(1L);
+                    request.payload = new Message.Payload();
+                    request.payload.formatRequest = new FormatRequest(100);
                     socket.send(InetAddress.getByName(address), port, Utils.encode(request));
                 }
             } catch (IOException e) {

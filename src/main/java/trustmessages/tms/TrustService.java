@@ -86,46 +86,49 @@ public class TrustService implements Runnable, IncomingDataHandler {
                     return;
                 }
 
-                final Message incoming = Utils.decode(packet.data);
-                LOG.debug("Decoded: {}", incoming);
+                final Message.Payload payload = Utils.decode(packet.data).payload;
+
+                LOG.debug("Decoded: {}", payload);
 
                 final Message outgoing = new Message();
+                outgoing.version = new BerInteger(1L);
+                outgoing.payload = new Message.Payload();
 
-                if (incoming.dataRequest != null) {
-                    LOG.info("[data-request] ({}B): {} / {}", packet.data.length, incoming.dataRequest.type,
-                            incoming.dataRequest.query);
+                if (payload.dataRequest != null) {
+                    LOG.info("[data-request] ({}B): {} / {}", packet.data.length, payload.dataRequest.type,
+                            payload.dataRequest.query);
                     final DataResponse response = new DataResponse(
-                            incoming.dataRequest.rid,
-                            db.getId().get(Type.fromEnum(incoming.dataRequest.type)),
-                            incoming.dataRequest.type,
+                            payload.dataRequest.rid,
+                            db.getId().get(Type.fromEnum(payload.dataRequest.type)),
+                            payload.dataRequest.type,
                             new Entity(name.getBytes()),
                             new DataResponse.Response());
                     // querying for trust or assessments?
-                    response.response.seqOf = incoming.dataRequest.type.value.equals(BigInteger.ZERO) ?
-                            db.getTrust(incoming.dataRequest.query) :
-                            db.getAssessments(incoming.dataRequest.query);
-                    outgoing.dataResponse = response;
-                } else if (incoming.formatRequest != null) {
+                    response.response.seqOf = payload.dataRequest.type.value.equals(BigInteger.ZERO) ?
+                            db.getTrust(payload.dataRequest.query) :
+                            db.getAssessments(payload.dataRequest.query);
+                    outgoing.payload.dataResponse = response;
+                } else if (payload.formatRequest != null) {
                     LOG.info("[format-request] ({}B)", packet.data.length);
                     final FormatResponse fr = new FormatResponse();
-                    fr.rid = new BerInteger(incoming.formatRequest.value);
+                    fr.rid = new BerInteger(payload.formatRequest.value);
                     fr.assessmentId = db.getId().get(Type.ASSESSMENT);
                     fr.assessmentDef = new BerPrintableString(db.getFormat().get(Type.ASSESSMENT).getBytes());
                     fr.trustId = db.getId().get(Type.TRUST);
                     fr.trustDef = new BerPrintableString(db.getFormat().get(Type.TRUST).getBytes());
-                    outgoing.formatResponse = fr;
-                } else if (incoming.dataResponse != null) {
+                    outgoing.payload.formatResponse = fr;
+                } else if (payload.dataResponse != null) {
                     LOG.info("[data-response] ({}B): {} / ({}) {}",
                             packet.data.length,
-                            incoming.dataResponse.type,
-                            incoming.dataResponse.provider,
-                            incoming.dataResponse.response.seqOf);
+                            payload.dataResponse.type,
+                            payload.dataResponse.provider,
+                            payload.dataResponse.response.seqOf);
                     continue;
-                } else if (incoming.formatResponse != null) {
-                    LOG.info("[format-response] {}", incoming.formatResponse);
+                } else if (payload.formatResponse != null) {
+                    LOG.info("[format-response] {}", payload.formatResponse);
                     continue;
                 } else {
-                    LOG.warn("[unknown-message] {}", incoming);
+                    LOG.warn("[unknown-message] {}", payload);
                 }
 
                 packet.socket.send(

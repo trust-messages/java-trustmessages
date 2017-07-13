@@ -7,7 +7,6 @@ package trustmessages.asn;
 import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
 import org.openmuc.jasn1.ber.BerLength;
 import org.openmuc.jasn1.ber.BerTag;
-import org.openmuc.jasn1.ber.types.BerEnum;
 import org.openmuc.jasn1.ber.types.BerInteger;
 import org.openmuc.jasn1.ber.types.string.BerPrintableString;
 
@@ -21,7 +20,6 @@ public class Fault {
 
     public byte[] code = null;
     public BerInteger rid = null;
-    public BerEnum value = null;
     public BerPrintableString message = null;
 
     public Fault() {
@@ -31,9 +29,8 @@ public class Fault {
         this.code = code;
     }
 
-    public Fault(BerInteger rid, BerEnum value, BerPrintableString message) {
+    public Fault(BerInteger rid, BerPrintableString message) {
         this.rid = rid;
-        this.value = value;
         this.message = message;
     }
 
@@ -55,8 +52,6 @@ public class Fault {
 
         int codeLength = 0;
         codeLength += message.encode(os, true);
-
-        codeLength += value.encode(os, true);
 
         codeLength += rid.encode(os, true);
 
@@ -98,14 +93,6 @@ public class Fault {
             throw new IOException("Tag does not match the mandatory sequence element tag.");
         }
 
-        if (berTag.equals(BerEnum.tag)) {
-            value = new BerEnum();
-            subCodeLength += value.decode(is, false);
-            subCodeLength += berTag.decode(is);
-        } else {
-            throw new IOException("Tag does not match the mandatory sequence element tag.");
-        }
-
         if (berTag.equals(BerPrintableString.tag)) {
             message = new BerPrintableString();
             subCodeLength += message.decode(is, false);
@@ -127,9 +114,6 @@ public class Fault {
     public String toString() {
         StringBuilder sb = new StringBuilder("SEQUENCE{");
         sb.append("rid: ").append(rid);
-
-        sb.append(", ");
-        sb.append("value: ").append(value);
 
         sb.append(", ");
         sb.append("message: ").append(message);

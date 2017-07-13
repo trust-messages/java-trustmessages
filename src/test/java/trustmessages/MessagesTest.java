@@ -30,7 +30,9 @@ public class MessagesTest {
         ar.response = new DataResponse.Response();
         ar.response.seqOf = new SLDb().getAssessments(Utils.getQuery("source = bob AND target = alice"));
 
-        final Message orig = new Message(null, ar, null, null, null);
+        final Message orig = new Message(
+                new BerInteger(1L),
+                new Message.Payload(null, ar, null, null, null));
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos);
@@ -171,35 +173,22 @@ public class MessagesTest {
     }
 
     @Test
-    public void assessmentRequestFromPython() throws IOException {
-        final byte[] q = Utils.decode("Yg4CAQEKAQBlBgoBBUIBUA==");
-        final Message m = new Message();
-        m.decode(new ByteArrayInputStream(q));
-    }
-
-    @Test
     public void assessmentRequest() throws IOException {
         final DataRequest ar = new DataRequest(
                 new BerInteger(0),
                 new BerEnum(1L),
                 Utils.getQuery("target = david@fri.si AND (service = seller OR service = letter)"));
-        final Message orig = new Message(ar, null, null, null, null);
+        final Message orig = new Message(
+                new BerInteger(1L),
+                new Message.Payload(ar, null, null, null, null));
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos);
 
         final Message decoded = new Message();
-        decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
+        decoded.decode(new ByteArrayInputStream(baos.getArray()));
 
         assertEquals(orig.toString(), decoded.toString());
-    }
-
-    @Test
-    public void assessmentResponseFromPython() throws IOException {
-        final byte[] q = Utils.decode("Y1gCAQEGAikBCgEAEwRlYmF5MEZkIRMHYkB4LmNvbRMHY0B4LmNv" +
-                "bRMGbGV0dGVyAgID6AIBBWQhEwdhQHguY29tEwdiQHguY29tEwZyZW50ZXICAgPoAgEF");
-        final Message m = new Message();
-        m.decode(new ByteArrayInputStream(q), null);
     }
 
     @Test
@@ -227,13 +216,15 @@ public class MessagesTest {
             ar.response.seqOf.add(a);
         }
 
-        final Message orig = new Message(null, ar, null, null, null);
+        final Message orig = new Message(
+                new BerInteger(1L),
+                new Message.Payload(null, ar, null, null, null));
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos);
 
         final Message decoded = new Message();
-        decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
+        decoded.decode(new ByteArrayInputStream(baos.getArray()));
 
         assertEquals(orig.toString(), decoded.toString());
     }
@@ -263,13 +254,15 @@ public class MessagesTest {
             ar.response.seqOf.add(a);
         }
 
-        final Message orig = new Message(null, ar, null, null, null);
+        final Message orig = new Message(
+                new BerInteger(1L),
+                new Message.Payload(null, ar, null, null, null));
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos);
 
         final Message decoded = new Message();
-        decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
+        decoded.decode(new ByteArrayInputStream(baos.getArray()));
 
         assertEquals(orig.toString(), decoded.toString());
         // System.out.println(Base64.getEncoder().encodeToString(baos.getArray()));
@@ -277,7 +270,7 @@ public class MessagesTest {
 
     @Test
     public void trustRequestFromPython() throws IOException {
-        final byte[] q = Utils.decode("Yg4CAQEKAQBlBgoBBUIBUA==");
+        final byte[] q = Utils.decode("MBMCAQFiDgIBAQoBAGUGCgEFQgFQ");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q));
     }
@@ -288,22 +281,24 @@ public class MessagesTest {
                 new BerInteger(0),
                 new BerEnum(0L),
                 Utils.getQuery("target = david@fri.si AND (service = seller OR service = letter)"));
-        final Message orig = new Message(tr, null, null, null, null);
+        final Message orig = new Message(
+                new BerInteger(1L),
+                new Message.Payload(tr, null, null, null, null));
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos);
 
         final Message decoded = new Message();
-        decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
+        decoded.decode(new ByteArrayInputStream(baos.getArray()));
 
         assertEquals(orig.toString(), decoded.toString());
     }
 
     @Test
     public void trustResponseFromPython() throws IOException {
-        final byte[] q = Utils.decode("Y1gCAQEGAikBCgEBEwRlYmF5MEZkIRMHYUB4Lm" +
-                "NvbRMHYkB4LmNvbRMGbGV0dGVyAgID6AoBBGQhEwdjQHguY29tEwdhQHguY29tE" +
-                "wZyZW50ZXICAgPoCgEE");
+        final byte[] q = Utils.decode("MFwCAQFjVwIBAQYCKQEKAQATBGViYXkwRWQgE" +
+                "wdhQHguY29tEwdiQHguY29tEwVidXllcgICA+gCAQVkIRMHY0B4LmNvbRMHYUB" +
+                "4LmNvbRMGc2VsbGVyAgID6AIBBQ==");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q));
     }
@@ -333,43 +328,47 @@ public class MessagesTest {
             tr.response.seqOf.add(t);
         }
 
-        final Message orig = new Message(null, tr, null, null, null);
+        final Message orig = new Message(
+                new BerInteger(1L),
+                new Message.Payload(null, tr, null, null, null));
 
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos);
 
         final Message decoded = new Message();
-        decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
+        decoded.decode(new ByteArrayInputStream(baos.getArray()));
 
         assertEquals(orig.toString(), decoded.toString());
     }
 
     @Test
     public void formatRequestFromPython() throws IOException {
-        final byte[] q = Utils.decode("QAFk");
+        final byte[] q = Utils.decode("MAYCAQFAAWQ=");
         final Message m = new Message();
-        m.decode(new ByteArrayInputStream(q), null);
+        m.decode(new ByteArrayInputStream(q));
     }
 
     @Test
     public void formatRequest() throws IOException {
-        final Message orig = new Message(null, null, new FormatRequest(10L), null, null);
+        final Message orig = new Message(
+                new BerInteger(1L),
+                new Message.Payload(null, null, new FormatRequest(10L), null, null));
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(10, true);
         orig.encode(baos);
 
         final Message decoded = new Message();
-        decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
+        decoded.decode(new ByteArrayInputStream(baos.getArray()));
 
         assertEquals(orig.toString(), decoded.toString());
     }
 
     @Test
     public void formatResponseFromPython() throws IOException {
-        final byte[] q = Utils.decode("YWACAWQGAioDEytIZXJlIGJlIGFuIEFTTi4xIH" +
-                "NwZWMgZm9yIGFzc2Vzc21lbnQgdmFsdWVzBgIqAxMmSGVyZSBiZSBhbiBBU04uM" +
-                "SBzcGVjIGZvciB0cnVzdCB2YWx1ZXM=");
+        final byte[] q = Utils.decode("MGUCAQFhYAIBZAYCKgMTK0hlcmUgYmUgYW4gQVNOLjEgc3BlYyB" +
+                "mb3IgYXNzZXNzbWVudCB2YWx1ZXMGAioDEyZIZXJlIGJlIGFuIEFTTi4xIHNwZWMgZm9yIHRydXN" +
+                "0IHZhbHVlcw==");
         final Message m = new Message();
-        m.decode(new ByteArrayInputStream(q), null);
+        m.decode(new ByteArrayInputStream(q));
     }
 
     @Test
@@ -380,26 +379,32 @@ public class MessagesTest {
         fr.trustDef = new BerPrintableString("Trust format".getBytes());
         fr.trustId = new Format(new int[]{1, 2, 3});
         fr.rid = new BerInteger(10L);
-        final Message orig = new Message(null, null, null, fr, null);
+        final Message orig = new Message(
+                new BerInteger(1L),
+                new Message.Payload(null, null, null, fr, null));
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos);
 
         final Message decoded = new Message();
-        decoded.decode(new ByteArrayInputStream(baos.getArray()), null);
+        decoded.decode(new ByteArrayInputStream(baos.getArray()));
         assertEquals(orig.toString(), decoded.toString());
     }
 
     @Test
     public void faultFromPython() throws IOException {
-        final byte[] q = Utils.decode("Zx0CAQoKAQATFXNvbWV0aGluZyB3ZW50IHdyb25nIQ==");
+        final byte[] q = Utils.decode("MB8CAQFnGgIBChMVc29tZXRoaW5nIHdlbnQgd3Jvbmch");
         final Message m = new Message();
-        m.decode(new ByteArrayInputStream(q), null);
+        m.decode(new ByteArrayInputStream(q));
     }
 
     @Test
     public void fault() throws IOException {
-        final Fault f = new Fault(new BerInteger(10), new BerEnum(0), new BerPrintableString("something went wrong!".getBytes()));
-        final Message orig = new Message(null, null, null, null, f);
+        final Fault f = new Fault(
+                new BerInteger(10),
+                new BerPrintableString("something went wrong!".getBytes()));
+        final Message orig = new Message(
+                new BerInteger(1L),
+                new Message.Payload(null, null, null, null, f));
         final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
         orig.encode(baos);
 

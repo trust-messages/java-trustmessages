@@ -5,7 +5,9 @@
 package trustmessages.asn;
 
 import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
+import org.openmuc.jasn1.ber.BerLength;
 import org.openmuc.jasn1.ber.BerTag;
+import org.openmuc.jasn1.ber.types.BerInteger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,12 +15,10 @@ import java.io.InputStream;
 
 public class Message {
 
+    public static final BerTag tag = new BerTag(BerTag.UNIVERSAL_CLASS, BerTag.CONSTRUCTED, 16);
     public byte[] code = null;
-    public DataRequest dataRequest = null;
-    public DataResponse dataResponse = null;
-    public FormatRequest formatRequest = null;
-    public FormatResponse formatResponse = null;
-    public Fault fault = null;
+    public BerInteger version = null;
+    public Payload payload = null;
 
     public Message() {
     }
@@ -27,131 +27,240 @@ public class Message {
         this.code = code;
     }
 
-    public Message(DataRequest dataRequest, DataResponse dataResponse, FormatRequest formatRequest, FormatResponse formatResponse, Fault fault) {
-        this.dataRequest = dataRequest;
-        this.dataResponse = dataResponse;
-        this.formatRequest = formatRequest;
-        this.formatResponse = formatResponse;
-        this.fault = fault;
+    public Message(BerInteger version, Payload payload) {
+        this.version = version;
+        this.payload = payload;
     }
 
     public int encode(BerByteArrayOutputStream os) throws IOException {
+        return encode(os, true);
+    }
+
+    public int encode(BerByteArrayOutputStream os, boolean withTag) throws IOException {
 
         if (code != null) {
             for (int i = code.length - 1; i >= 0; i--) {
                 os.write(code[i]);
             }
+            if (withTag) {
+                return tag.encode(os) + code.length;
+            }
             return code.length;
         }
 
         int codeLength = 0;
-        if (fault != null) {
-            codeLength += fault.encode(os, true);
-            return codeLength;
+        codeLength += payload.encode(os);
+
+        codeLength += version.encode(os, true);
+
+        codeLength += BerLength.encodeLength(os, codeLength);
+
+        if (withTag) {
+            codeLength += tag.encode(os);
         }
 
-        if (formatResponse != null) {
-            codeLength += formatResponse.encode(os, true);
-            return codeLength;
-        }
+        return codeLength;
 
-        if (formatRequest != null) {
-            codeLength += formatRequest.encode(os, true);
-            return codeLength;
-        }
-
-        if (dataResponse != null) {
-            codeLength += dataResponse.encode(os, true);
-            return codeLength;
-        }
-
-        if (dataRequest != null) {
-            codeLength += dataRequest.encode(os, true);
-            return codeLength;
-        }
-
-        throw new IOException("Error encoding BerChoice: No item in choice was selected.");
     }
 
     public int decode(InputStream is) throws IOException {
-        return decode(is, null);
+        return decode(is, true);
     }
 
-    public int decode(InputStream is, BerTag berTag) throws IOException {
-
+    public int decode(InputStream is, boolean withTag) throws IOException {
         int codeLength = 0;
-        BerTag passedTag = berTag;
+        int subCodeLength = 0;
+        BerTag berTag = new BerTag();
 
-        if (berTag == null) {
-            berTag = new BerTag();
-            codeLength += berTag.decode(is);
+        if (withTag) {
+            codeLength += tag.decodeAndCheck(is);
         }
 
-        if (berTag.equals(DataRequest.tag)) {
-            dataRequest = new DataRequest();
-            codeLength += dataRequest.decode(is, false);
+        BerLength length = new BerLength();
+        codeLength += length.decode(is);
+
+        int totalLength = length.val;
+        codeLength += totalLength;
+
+        subCodeLength += berTag.decode(is);
+        if (berTag.equals(BerInteger.tag)) {
+            version = new BerInteger();
+            subCodeLength += version.decode(is, false);
+            subCodeLength += berTag.decode(is);
+        } else {
+            throw new IOException("Tag does not match the mandatory sequence element tag.");
+        }
+
+        payload = new Payload();
+        subCodeLength += payload.decode(is, berTag);
+        if (subCodeLength == totalLength) {
             return codeLength;
         }
+        throw new IOException("Unexpected end of sequence, length tag: " + totalLength + ", actual sequence length: " + subCodeLength);
 
-        if (berTag.equals(DataResponse.tag)) {
-            dataResponse = new DataResponse();
-            codeLength += dataResponse.decode(is, false);
-            return codeLength;
-        }
 
-        if (berTag.equals(FormatRequest.tag)) {
-            formatRequest = new FormatRequest();
-            codeLength += formatRequest.decode(is, false);
-            return codeLength;
-        }
-
-        if (berTag.equals(FormatResponse.tag)) {
-            formatResponse = new FormatResponse();
-            codeLength += formatResponse.decode(is, false);
-            return codeLength;
-        }
-
-        if (berTag.equals(Fault.tag)) {
-            fault = new Fault();
-            codeLength += fault.decode(is, false);
-            return codeLength;
-        }
-
-        if (passedTag != null) {
-            return 0;
-        }
-
-        throw new IOException("Error decoding BerChoice: Tag matched to no item.");
     }
 
     public void encodeAndSave(int encodingSizeGuess) throws IOException {
         BerByteArrayOutputStream os = new BerByteArrayOutputStream(encodingSizeGuess);
-        encode(os);
+        encode(os, false);
         code = os.getArray();
     }
 
     public String toString() {
-        if (dataRequest != null) {
-            return "CHOICE{dataRequest: " + dataRequest + "}";
+        StringBuilder sb = new StringBuilder("SEQUENCE{");
+        sb.append("version: ").append(version);
+
+        sb.append(", ");
+        sb.append("payload: ").append(payload);
+
+        sb.append("}");
+        return sb.toString();
+    }
+
+    public static class Payload {
+
+        public byte[] code = null;
+        public DataRequest dataRequest = null;
+        public DataResponse dataResponse = null;
+        public FormatRequest formatRequest = null;
+        public FormatResponse formatResponse = null;
+        public Fault fault = null;
+
+        public Payload() {
         }
 
-        if (dataResponse != null) {
-            return "CHOICE{dataResponse: " + dataResponse + "}";
+        public Payload(byte[] code) {
+            this.code = code;
         }
 
-        if (formatRequest != null) {
-            return "CHOICE{formatRequest: " + formatRequest + "}";
+        public Payload(DataRequest dataRequest, DataResponse dataResponse, FormatRequest formatRequest, FormatResponse formatResponse, Fault fault) {
+            this.dataRequest = dataRequest;
+            this.dataResponse = dataResponse;
+            this.formatRequest = formatRequest;
+            this.formatResponse = formatResponse;
+            this.fault = fault;
         }
 
-        if (formatResponse != null) {
-            return "CHOICE{formatResponse: " + formatResponse + "}";
+        public int encode(BerByteArrayOutputStream os) throws IOException {
+
+            if (code != null) {
+                for (int i = code.length - 1; i >= 0; i--) {
+                    os.write(code[i]);
+                }
+                return code.length;
+            }
+
+            int codeLength = 0;
+            if (fault != null) {
+                codeLength += fault.encode(os, true);
+                return codeLength;
+            }
+
+            if (formatResponse != null) {
+                codeLength += formatResponse.encode(os, true);
+                return codeLength;
+            }
+
+            if (formatRequest != null) {
+                codeLength += formatRequest.encode(os, true);
+                return codeLength;
+            }
+
+            if (dataResponse != null) {
+                codeLength += dataResponse.encode(os, true);
+                return codeLength;
+            }
+
+            if (dataRequest != null) {
+                codeLength += dataRequest.encode(os, true);
+                return codeLength;
+            }
+
+            throw new IOException("Error encoding BerChoice: No item in choice was selected.");
         }
 
-        if (fault != null) {
-            return "CHOICE{fault: " + fault + "}";
+        public int decode(InputStream is) throws IOException {
+            return decode(is, null);
         }
 
-        return "unknown";
+        public int decode(InputStream is, BerTag berTag) throws IOException {
+
+            int codeLength = 0;
+            BerTag passedTag = berTag;
+
+            if (berTag == null) {
+                berTag = new BerTag();
+                codeLength += berTag.decode(is);
+            }
+
+            if (berTag.equals(DataRequest.tag)) {
+                dataRequest = new DataRequest();
+                codeLength += dataRequest.decode(is, false);
+                return codeLength;
+            }
+
+            if (berTag.equals(DataResponse.tag)) {
+                dataResponse = new DataResponse();
+                codeLength += dataResponse.decode(is, false);
+                return codeLength;
+            }
+
+            if (berTag.equals(FormatRequest.tag)) {
+                formatRequest = new FormatRequest();
+                codeLength += formatRequest.decode(is, false);
+                return codeLength;
+            }
+
+            if (berTag.equals(FormatResponse.tag)) {
+                formatResponse = new FormatResponse();
+                codeLength += formatResponse.decode(is, false);
+                return codeLength;
+            }
+
+            if (berTag.equals(Fault.tag)) {
+                fault = new Fault();
+                codeLength += fault.decode(is, false);
+                return codeLength;
+            }
+
+            if (passedTag != null) {
+                return 0;
+            }
+
+            throw new IOException("Error decoding BerChoice: Tag matched to no item.");
+        }
+
+        public void encodeAndSave(int encodingSizeGuess) throws IOException {
+            BerByteArrayOutputStream os = new BerByteArrayOutputStream(encodingSizeGuess);
+            encode(os);
+            code = os.getArray();
+        }
+
+        public String toString() {
+            if (dataRequest != null) {
+                return "CHOICE{dataRequest: " + dataRequest + "}";
+            }
+
+            if (dataResponse != null) {
+                return "CHOICE{dataResponse: " + dataResponse + "}";
+            }
+
+            if (formatRequest != null) {
+                return "CHOICE{formatRequest: " + formatRequest + "}";
+            }
+
+            if (formatResponse != null) {
+                return "CHOICE{formatResponse: " + formatResponse + "}";
+            }
+
+            if (fault != null) {
+                return "CHOICE{fault: " + fault + "}";
+            }
+
+            return "unknown";
+        }
+
     }
 
 }
