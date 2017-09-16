@@ -83,6 +83,8 @@ When specifying the query, keep keep in mind that both example trust and reputat
 * four different services (`seller`, `buyer`, `renter`, `letter`),
 * all `date` values are between `0` and `79`.
 
+Also, remember to capitalize logical operators `AND` and `OR`.
+
 ```
 127.0.0.1 6000 areq source = alice AND target  = bob AND date > 1
 12:04:05.998 [pool-1-thread-2] INFO  trustmessages.socket.TrustSocket - [/127.0.0.1:6000] Sent (56B)
