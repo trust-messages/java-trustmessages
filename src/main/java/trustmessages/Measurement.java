@@ -16,7 +16,7 @@ public class Measurement {
     }
 
     public static void encode(int iterations, String pathname) throws IOException {
-        System.out.println("\"Filename\", \"Average\", \"Total\", \"Bytes\"");
+        System.out.println("Filename, Average, Total, Bytes");
 
         for (File file : getFileNames(pathname)) {
             final byte[] content = Files.readAllBytes(file.toPath());
@@ -42,13 +42,13 @@ public class Measurement {
             // from nano- to seconds
             total = total / Math.pow(10, 9);
 
-            System.out.printf("\"%s\", \"%f\", \"%f\", \"%d\"%n",
+            System.out.printf("%s, %f, %f, %d%n",
                     file.toPath(), total / iterations, total, content.length);
         }
     }
 
     public static void decode(int iterations, String pathname) throws IOException {
-        System.out.println("\"Filename\", \"Average\", \"Total\", \"Bytes\"");
+        System.out.println("Filename, Average, Total, Bytes");
 
         for (File file : getFileNames(pathname)) {
             final byte[] content = Files.readAllBytes(file.toPath());
@@ -69,7 +69,7 @@ public class Measurement {
             // from nano- to seconds
             total = total / Math.pow(10, 9);
 
-            System.out.printf("\"%s\", \"%f\", \"%f\", \"%d\"%n",
+            System.out.printf("%s, %f, %f, %d%n",
                     file.toPath(), total / iterations, total, content.length);
         }
     }
