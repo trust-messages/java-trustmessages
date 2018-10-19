@@ -1,7 +1,7 @@
 package trustmessages.tms;
 
 import org.openmuc.jasn1.ber.types.BerInteger;
-import org.openmuc.jasn1.ber.types.string.BerPrintableString;
+import org.openmuc.jasn1.ber.types.string.BerIA5String;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import trustmessages.Utils;
@@ -113,9 +113,9 @@ public class TrustService implements Runnable, IncomingDataHandler {
                     final FormatResponse fr = new FormatResponse();
                     fr.rid = new BerInteger(payload.formatRequest.value);
                     fr.assessmentId = db.getId().get(Type.ASSESSMENT);
-                    fr.assessmentDef = new BerPrintableString(db.getFormat().get(Type.ASSESSMENT).getBytes());
+                    fr.assessmentDef = new BerIA5String(db.getFormat().get(Type.ASSESSMENT).getBytes());
                     fr.trustId = db.getId().get(Type.TRUST);
-                    fr.trustDef = new BerPrintableString(db.getFormat().get(Type.TRUST).getBytes());
+                    fr.trustDef = new BerIA5String(db.getFormat().get(Type.TRUST).getBytes());
                     outgoing.payload.formatResponse = fr;
                 } else if (payload.dataResponse != null) {
                     LOG.info("[data-response] ({}B): {} / ({}) {}",

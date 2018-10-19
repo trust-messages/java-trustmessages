@@ -1,6 +1,6 @@
 package trustmessages;
 
-import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
+import org.openmuc.jasn1.ber.ReverseByteArrayOutputStream;
 import trustmessages.asn.Message;
 
 import java.io.ByteArrayInputStream;
@@ -28,7 +28,7 @@ public class Measurement {
             double total = 0;
 
             for (int i = 0; i < iterations; i++) {
-                final BerByteArrayOutputStream os = new BerByteArrayOutputStream(content.length, false);
+                final ReverseByteArrayOutputStream os = new ReverseByteArrayOutputStream(content.length, false);
 
                 final long start = System.nanoTime();
                 message.encode(os);

@@ -3,7 +3,7 @@ package trustmessages;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
+import org.openmuc.jasn1.ber.ReverseByteArrayOutputStream;
 import org.openmuc.jasn1.ber.types.BerEnum;
 import org.openmuc.jasn1.ber.types.BerInteger;
 import trustmessages.antlr.QueryLexer;
@@ -37,7 +37,7 @@ public class Utils {
                 new Message.Payload(null, null,
                         new FormatRequest(10L), null, null));
 
-        final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
+        final ReverseByteArrayOutputStream baos = new ReverseByteArrayOutputStream(100, true);
         m.encode(baos);
 
         System.out.println(Base64.getEncoder().encodeToString(baos.getArray()));
@@ -56,7 +56,7 @@ public class Utils {
 
     public static byte[] encode(Message message) {
         try {
-            final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(100, true);
+            final ReverseByteArrayOutputStream baos = new ReverseByteArrayOutputStream(100, true);
             message.encode(baos);
             return baos.getArray();
         } catch (IOException e) {

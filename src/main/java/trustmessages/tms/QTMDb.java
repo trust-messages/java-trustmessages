@@ -1,7 +1,7 @@
 package trustmessages.tms;
 
-import org.openmuc.jasn1.ber.BerByteArrayOutputStream;
-import org.openmuc.jasn1.ber.types.BerAny;
+import org.openmuc.jasn1.ber.ReverseByteArrayOutputStream;
+import org.openmuc.jasn1.ber.types.BerOctetString;
 import trustmessages.asn.*;
 
 import java.io.IOException;
@@ -28,14 +28,14 @@ public class QTMDb extends InMemoryTrustDb {
                     t.date = new BinaryTime(TIME.next());
 
                     final QTM v = new QTM(VALUES.next());
-                    final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(3, true);
+                    final ReverseByteArrayOutputStream baos = new ReverseByteArrayOutputStream(3, true);
                     try {
                         v.encode(baos);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
 
-                    t.value = new BerAny(baos.getArray());
+                    t.value = new BerOctetString(baos.getArray());
                     TRUST.add(t);
                 }
             }
@@ -55,14 +55,14 @@ public class QTMDb extends InMemoryTrustDb {
                     a.date = new BinaryTime(TIME.next());
 
                     final QTM v = new QTM(VALUES.next());
-                    final BerByteArrayOutputStream baos = new BerByteArrayOutputStream(3, true);
+                    final ReverseByteArrayOutputStream baos = new ReverseByteArrayOutputStream(3, true);
                     try {
                         v.encode(baos, true);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
 
-                    a.value = new BerAny(baos.getArray());
+                    a.value = new BerOctetString(baos.getArray());
                     ASSESSMENTS.add(a);
                 }
             }
