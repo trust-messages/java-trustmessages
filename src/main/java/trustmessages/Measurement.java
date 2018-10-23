@@ -11,6 +11,8 @@ import java.util.Arrays;
 
 public class Measurement {
 
+    public static final int ITERATIONS = 500000;
+
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             System.out.printf("Usage: %s %s%n", args[0], "encode|decode");
@@ -19,10 +21,10 @@ public class Measurement {
 
         switch (args[0]) {
             case "encode":
-                encode(100000, "..");
+                encode(ITERATIONS, "..");
                 break;
             case "decode":
-                decode(100000, "..");
+                decode(ITERATIONS, "..");
                 break;
             default:
                 System.out.printf("Usage: %s %s%n", args[0], "encode|decode");
