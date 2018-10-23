@@ -12,7 +12,23 @@ import java.util.Arrays;
 public class Measurement {
 
     public static void main(String[] args) throws IOException {
-        decode(100000, "..");
+        if (args.length != 1) {
+            System.out.printf("Usage: %s %s%n", args[0], "encode|decode");
+            System.exit(1);
+        }
+
+        switch (args[0]) {
+            case "encode":
+                encode(100000, "..");
+                break;
+            case "decode":
+                decode(100000, "..");
+                break;
+            default:
+                System.out.printf("Usage: %s %s%n", args[0], "encode|decode");
+                System.exit(1);
+                break;
+        }
     }
 
     public static void encode(int iterations, String pathname) throws IOException {

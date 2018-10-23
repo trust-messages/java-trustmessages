@@ -111,3 +111,10 @@ An example output for `TrustRequest`.
 12:10:33.910 [pool-1-thread-1] INFO  trustmessages.tms.TrustService - [data-request] (54B): 0 / CHOICE{exp: SEQUENCE{operator: 0, left: CHOICE{exp: SEQUENCE{operator: 0, left: CHOICE{con: SEQUENCE{operator: 0, value: CHOICE{source: alice}}}, right: CHOICE{con: SEQUENCE{operator: 0, value: CHOICE{target: bob}}}}}, right: CHOICE{con: SEQUENCE{operator: 4, value: CHOICE{date: 1}}}}}
 12:10:33.936 [pool-1-thread-2] INFO  trustmessages.socket.TrustSocket - [/127.0.0.1:6000] Sent (142B)
 ```
+
+### Benchmarking 
+
+To run the benchmarking tests, run the following:
+
+* Encoding test `mvn exec:java -Dexec.mainClass="trustmessages.Measurement" -Dexec.args="encode"` 
+* Decoding test `mvn exec:java -Dexec.mainClass="trustmessages.Measurement" -Dexec.args="decode"`
