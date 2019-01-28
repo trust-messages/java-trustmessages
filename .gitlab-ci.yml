@@ -1,13 +1,11 @@
-image: java:latest
-
-stages:
-  - build
-  - execute
+image: maven:latest
 
 build:
   stage: build
-  script: mvn compile
+  script:
+    - mvn compile
 
-execute:
-  stage: execute
-  script: mvn test
+test:
+  stage: test
+  script:
+    - mvn test
