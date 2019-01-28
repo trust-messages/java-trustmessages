@@ -4,7 +4,7 @@ An example Java application that uses `trust messages` ASN.1 schema.
 
 ## Overview
 
-The application is a simple command-line tool with netstat-like behavior: once you run the program, you are given an input prompt where you can connect to other such programs and query them for trust and reputation information. If another system connects to your program and sends a request, you are shown the incoming query on the standard output. The requests are replied automatically.
+The application is a simple command-line tool with netcat-like behavior: once you run the program, you are given an input prompt where you can connect to other such programs and query them for trust and reputation information. If another system connects to your program and sends a request, you are shown the incoming query on the standard output. The requests are replied automatically.
 
 ## Building
 
