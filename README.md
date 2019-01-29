@@ -1,6 +1,6 @@
 # Java Trust Messages
 
-An example Java application that uses `trust messages` ASN.1 schema. 
+An example of a Java application that uses `trust messages` ASN.1 schema. 
 
 ## Overview
 
