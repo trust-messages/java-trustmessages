@@ -13,8 +13,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class DbTest {
     private static final InMemoryTrustDb QTM_DB = new QTMDb();
@@ -29,7 +28,7 @@ public class DbTest {
 
         trust.forEach(t -> {
             assertTrue(t.service.toString().equals("seller") || t.service.toString().equals("buyer"));
-            assertTrue(t.target.toString().equals("david"));
+            assertEquals("david", t.target.toString());
 
             try {
                 new QTM().decode(new ByteArrayInputStream(t.value.value), true);
@@ -65,7 +64,7 @@ public class DbTest {
 
         trust.forEach(t -> {
             assertTrue(t.service.toString().equals("seller") || t.service.toString().equals("buyer"));
-            assertTrue(t.target.toString().equals("david"));
+            assertEquals("david", t.target.toString());
 
             try {
                 new SL().decode(new ByteArrayInputStream(t.value.value));

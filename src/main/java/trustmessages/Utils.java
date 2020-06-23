@@ -9,10 +9,7 @@ import org.openmuc.jasn1.ber.types.BerInteger;
 import trustmessages.antlr.QueryLexer;
 import trustmessages.antlr.QueryParser;
 import trustmessages.antlr.Visitor;
-import trustmessages.asn.DataRequest;
-import trustmessages.asn.FormatRequest;
-import trustmessages.asn.Message;
-import trustmessages.asn.Query;
+import trustmessages.asn.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -33,7 +30,7 @@ public class Utils {
                 getQuery("source = david AND (service = seller OR service = letter) AND (target = balu OR target = aleks)")
         );
         final Message m = new Message(
-                new BerInteger(1L),
+                new BerInteger(1L), new Entity("caller".getBytes()), new Entity("callee".getBytes()),
                 new Message.Payload(null, null,
                         new FormatRequest(10L), null, null));
 

@@ -22,6 +22,8 @@ public class Message implements BerType, Serializable {
     private static final long serialVersionUID = 1L;
     public byte[] code = null;
     public BerInteger version = null;
+    public Entity caller = null;
+    public Entity callee = null;
     public Payload payload = null;
     public Message() {
     }
@@ -30,8 +32,10 @@ public class Message implements BerType, Serializable {
         this.code = code;
     }
 
-    public Message(BerInteger version, Payload payload) {
+    public Message(BerInteger version, Entity caller, Entity callee, Payload payload) {
         this.version = version;
+        this.caller = caller;
+        this.callee = callee;
         this.payload = payload;
     }
 
@@ -53,6 +57,10 @@ public class Message implements BerType, Serializable {
 
         int codeLength = 0;
         codeLength += payload.encode(reverseOS);
+
+        codeLength += callee.encode(reverseOS, true);
+
+        codeLength += caller.encode(reverseOS, true);
 
         codeLength += version.encode(reverseOS, true);
 
@@ -94,6 +102,22 @@ public class Message implements BerType, Serializable {
             throw new IOException("Tag does not match the mandatory sequence element tag.");
         }
 
+        if (berTag.equals(Entity.tag)) {
+            caller = new Entity();
+            subCodeLength += caller.decode(is, false);
+            subCodeLength += berTag.decode(is);
+        } else {
+            throw new IOException("Tag does not match the mandatory sequence element tag.");
+        }
+
+        if (berTag.equals(Entity.tag)) {
+            callee = new Entity();
+            subCodeLength += callee.decode(is, false);
+            subCodeLength += berTag.decode(is);
+        } else {
+            throw new IOException("Tag does not match the mandatory sequence element tag.");
+        }
+
         payload = new Payload();
         subCodeLength += payload.decode(is, berTag);
         if (subCodeLength == totalLength) {
@@ -127,6 +151,26 @@ public class Message implements BerType, Serializable {
             sb.append("version: ").append(version);
         } else {
             sb.append("version: <empty-required-field>");
+        }
+
+        sb.append(",\n");
+        for (int i = 0; i < indentLevel + 1; i++) {
+            sb.append("\t");
+        }
+        if (caller != null) {
+            sb.append("caller: ").append(caller);
+        } else {
+            sb.append("caller: <empty-required-field>");
+        }
+
+        sb.append(",\n");
+        for (int i = 0; i < indentLevel + 1; i++) {
+            sb.append("\t");
+        }
+        if (callee != null) {
+            sb.append("callee: ").append(callee);
+        } else {
+            sb.append("callee: <empty-required-field>");
         }
 
         sb.append(",\n");

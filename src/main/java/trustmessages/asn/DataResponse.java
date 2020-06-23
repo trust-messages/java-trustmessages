@@ -28,7 +28,6 @@ public class DataResponse implements BerType, Serializable {
     public BerInteger rid = null;
     public Format format = null;
     public BerEnum type = null;
-    public Entity provider = null;
     public Response response = null;
     public DataResponse() {
     }
@@ -37,11 +36,10 @@ public class DataResponse implements BerType, Serializable {
         this.code = code;
     }
 
-    public DataResponse(BerInteger rid, Format format, BerEnum type, Entity provider, Response response) {
+    public DataResponse(BerInteger rid, Format format, BerEnum type, Response response) {
         this.rid = rid;
         this.format = format;
         this.type = type;
-        this.provider = provider;
         this.response = response;
     }
 
@@ -63,8 +61,6 @@ public class DataResponse implements BerType, Serializable {
 
         int codeLength = 0;
         codeLength += response.encode(reverseOS, true);
-
-        codeLength += provider.encode(reverseOS, true);
 
         codeLength += type.encode(reverseOS, true);
 
@@ -126,14 +122,6 @@ public class DataResponse implements BerType, Serializable {
             throw new IOException("Tag does not match the mandatory sequence element tag.");
         }
 
-        if (berTag.equals(Entity.tag)) {
-            provider = new Entity();
-            subCodeLength += provider.decode(is, false);
-            subCodeLength += berTag.decode(is);
-        } else {
-            throw new IOException("Tag does not match the mandatory sequence element tag.");
-        }
-
         if (berTag.equals(Response.tag)) {
             response = new Response();
             subCodeLength += response.decode(is, false);
@@ -189,16 +177,6 @@ public class DataResponse implements BerType, Serializable {
             sb.append("type: ").append(type);
         } else {
             sb.append("type: <empty-required-field>");
-        }
-
-        sb.append(",\n");
-        for (int i = 0; i < indentLevel + 1; i++) {
-            sb.append("\t");
-        }
-        if (provider != null) {
-            sb.append("provider: ").append(provider);
-        } else {
-            sb.append("provider: <empty-required-field>");
         }
 
         sb.append(",\n");

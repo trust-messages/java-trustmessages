@@ -23,7 +23,6 @@ public class MessagesTest {
     @Test
     public void QTMAssessmentB64PrintQuery() throws IOException {
         final DataResponse ar = new DataResponse();
-        ar.provider = new Entity("sometms".getBytes());
         ar.format = new Format(new int[]{1, 1, 1});
         ar.rid = new BerInteger(1);
         ar.type = new BerEnum(1L);
@@ -32,11 +31,12 @@ public class MessagesTest {
 
         final Message orig = new Message(
                 new BerInteger(1L),
+                new Entity("caller".getBytes()), new Entity("callee".getBytes()),
                 new Message.Payload(null, ar, null, null, null));
 
         final ReverseByteArrayOutputStream baos = new ReverseByteArrayOutputStream(100, true);
         orig.encode(baos);
-        // System.out.println(Base64.getEncoder().encodeToString(baos.getArray()));
+//         System.out.println(Base64.getEncoder().encodeToString(baos.getArray()));
     }
 
     @Test
@@ -73,9 +73,8 @@ public class MessagesTest {
 
     @Test
     public void QTMDataResponseFromPython() throws IOException {
-        final byte[] q = Utils.decode("Y1wCAQEGAikBCgEBFgRlYmF5MEpkIx" +
-                "YHYUB4LmNvbRYHYkB4LmNvbRYGbGV0dGVyAgID6AQDCgEEZCMWB2NAe" +
-                "C5jb20WB2FAeC5jb20WBnJlbnRlcgICA+gEAwoBBA==");
+        final byte[] q = Utils.decode("Y1YCAQEGAikBCgEBMEpkIxYHY0B4LmNvbRYHYUB4LmNvbRYGbGV0dGVyAgID6AQDCgEEZ" +
+                "CMWB2JAeC5jb20WB2NAeC5jb20WBnJlbnRlcgICA+gEAwoBBA==");
         final DataResponse m = new DataResponse();
         m.decode(new ByteArrayInputStream(q), true);
 
@@ -182,6 +181,7 @@ public class MessagesTest {
                 Utils.getQuery("target = david@fri.si AND (service = seller OR service = letter)"));
         final Message orig = new Message(
                 new BerInteger(1L),
+                new Entity("caller".getBytes()), new Entity("callee".getBytes()),
                 new Message.Payload(ar, null, null, null, null));
 
         final ReverseByteArrayOutputStream baos = new ReverseByteArrayOutputStream(100, true);
@@ -196,7 +196,6 @@ public class MessagesTest {
     @Test
     public void assessmentResponseQTM() throws IOException {
         final DataResponse ar = new DataResponse();
-        ar.provider = new Entity("sometms".getBytes());
         ar.format = new Format(new int[]{1, 1, 1});
         ar.type = new BerEnum(1L);
         ar.rid = new BerInteger(1);
@@ -220,6 +219,7 @@ public class MessagesTest {
 
         final Message orig = new Message(
                 new BerInteger(1L),
+                new Entity("caller".getBytes()), new Entity("callee".getBytes()),
                 new Message.Payload(null, ar, null, null, null));
 
         final ReverseByteArrayOutputStream baos = new ReverseByteArrayOutputStream(100, true);
@@ -234,7 +234,6 @@ public class MessagesTest {
     @Test
     public void assessmentResponseSL() throws IOException {
         final DataResponse ar = new DataResponse();
-        ar.provider = new Entity("sometms".getBytes());
         ar.format = new Format(new int[]{1, 1, 1});
         ar.rid = new BerInteger(1);
         ar.type = new BerEnum(1L);
@@ -258,6 +257,7 @@ public class MessagesTest {
 
         final Message orig = new Message(
                 new BerInteger(1L),
+                new Entity("caller".getBytes()), new Entity("callee".getBytes()),
                 new Message.Payload(null, ar, null, null, null));
 
         final ReverseByteArrayOutputStream baos = new ReverseByteArrayOutputStream(100, true);
@@ -272,7 +272,7 @@ public class MessagesTest {
 
     @Test
     public void trustRequestFromPython() throws IOException {
-        final byte[] q = Utils.decode("MBMCAQFiDgIBAQoBAGUGCgEFQgFQ");
+        final byte[] q = Utils.decode("MCMCAQEWBmNhbGxlchYGY2FsbGVlYg4CAQEKAQBlBgoBBUIBUA==");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q));
     }
@@ -285,6 +285,7 @@ public class MessagesTest {
                 Utils.getQuery("target = david@fri.si AND (service = seller OR service = letter)"));
         final Message orig = new Message(
                 new BerInteger(1L),
+                new Entity("caller".getBytes()), new Entity("callee".getBytes()),
                 new Message.Payload(tr, null, null, null, null));
 
         final ReverseByteArrayOutputStream baos = new ReverseByteArrayOutputStream(100, true);
@@ -298,9 +299,8 @@ public class MessagesTest {
 
     @Test
     public void trustResponseFromPython() throws IOException {
-        final byte[] q = Utils.decode("MGECAQFjXAIBAQYCKQEKAQAWBGViYXkwSmQjFgdi" +
-                "QHguY29tFgdjQHguY29tFgZsZXR0ZXICAgPoBAMCAQVkIxYHYUB4LmNvbRYHYkB4L" +
-                "mNvbRYGcmVudGVyAgID6AQDAgEF");
+        final byte[] q = Utils.decode("MGsCAQEWBmNhbGxlchYGY2FsbGVlY1YCAQEGAikBCgEAMEpkIxYHYkB4LmNvbRYHY0B4LmNvbR" +
+                "YGbGV0dGVyAgID6AQDAgEFZCMWB2FAeC5jb20WB2JAeC5jb20WBnJlbnRlcgICA+gEAwIBBQ==");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q));
     }
@@ -308,7 +308,6 @@ public class MessagesTest {
     @Test
     public void trustResponse() throws IOException {
         final DataResponse tr = new DataResponse();
-        tr.provider = new Entity("sometms".getBytes());
         tr.format = new Format(new int[]{1, 1, 1});
         tr.rid = new BerInteger(1);
         tr.type = new BerEnum(0L);
@@ -332,6 +331,7 @@ public class MessagesTest {
 
         final Message orig = new Message(
                 new BerInteger(1L),
+                new Entity("caller".getBytes()), new Entity("callee".getBytes()),
                 new Message.Payload(null, tr, null, null, null));
 
         final ReverseByteArrayOutputStream baos = new ReverseByteArrayOutputStream(100, true);
@@ -345,7 +345,7 @@ public class MessagesTest {
 
     @Test
     public void formatRequestFromPython() throws IOException {
-        final byte[] q = Utils.decode("MAYCAQFAAWQ=");
+        final byte[] q = Utils.decode("MBYCAQEWBmNhbGxlchYGY2FsbGVlQAFk");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q));
     }
@@ -354,6 +354,7 @@ public class MessagesTest {
     public void formatRequest() throws IOException {
         final Message orig = new Message(
                 new BerInteger(1L),
+                new Entity("caller".getBytes()), new Entity("callee".getBytes()),
                 new Message.Payload(null, null, new FormatRequest(10L), null, null));
         final ReverseByteArrayOutputStream baos = new ReverseByteArrayOutputStream(10, true);
         orig.encode(baos);
@@ -366,9 +367,8 @@ public class MessagesTest {
 
     @Test
     public void formatResponseFromPython() throws IOException {
-        final byte[] q = Utils.decode("MGUCAQFhYAIBZAYCKgMWK0hlcmUgYmUgYW4gQVNOLj" +
-                "Egc3BlYyBmb3IgYXNzZXNzbWVudCB2YWx1ZXMGAioDFiZIZXJlIGJlIGFuIEFTTi4xI" +
-                "HNwZWMgZm9yIHRydXN0IHZhbHVlcw==");
+        final byte[] q = Utils.decode("MHUCAQEWBmNhbGxlchYGY2FsbGVlYWACAWQGAioDFitIZXJlIGJlIGFuIEFTTi4xIHNwZWMg" +
+                "Zm9yIGFzc2Vzc21lbnQgdmFsdWVzBgIqAxYmSGVyZSBiZSBhbiBBU04uMSBzcGVjIGZvciB0cnVzdCB2YWx1ZXM=");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q));
     }
@@ -383,6 +383,7 @@ public class MessagesTest {
         fr.rid = new BerInteger(10L);
         final Message orig = new Message(
                 new BerInteger(1L),
+                new Entity("caller".getBytes()), new Entity("callee".getBytes()),
                 new Message.Payload(null, null, null, fr, null));
         final ReverseByteArrayOutputStream baos = new ReverseByteArrayOutputStream(100, true);
         orig.encode(baos);
@@ -394,7 +395,7 @@ public class MessagesTest {
 
     @Test
     public void faultFromPython() throws IOException {
-        final byte[] q = Utils.decode("MB8CAQFnGgIBChYVc29tZXRoaW5nIHdlbnQgd3Jvbmch");
+        final byte[] q = Utils.decode("MC8CAQEWBmNhbGxlchYGY2FsbGVlZxoCAQoWFXNvbWV0aGluZyB3ZW50IHdyb25nIQ==");
         final Message m = new Message();
         m.decode(new ByteArrayInputStream(q));
     }
@@ -406,6 +407,7 @@ public class MessagesTest {
                 new BerIA5String("something went wrong!".getBytes()));
         final Message orig = new Message(
                 new BerInteger(1L),
+                new Entity("caller".getBytes()), new Entity("callee".getBytes()),
                 new Message.Payload(null, null, null, null, f));
         final ReverseByteArrayOutputStream baos = new ReverseByteArrayOutputStream(100, true);
         orig.encode(baos);

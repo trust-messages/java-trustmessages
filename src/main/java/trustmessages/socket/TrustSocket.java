@@ -246,7 +246,7 @@ public class TrustSocket implements Runnable {
 
         if (numRead == -1) {
             // clean shutDown
-            LOG.debug("[{}] Disconnected cleanly, closing {}", channel.getRemoteAddress());
+            LOG.debug("[{}] Disconnected cleanly, closing.", channel.getRemoteAddress());
             disconnectSocket(key);
             return;
         }

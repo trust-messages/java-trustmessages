@@ -85,7 +85,7 @@ public class TrustService implements Runnable, IncomingDataHandler {
                     LOG.info("[SERVICE]: Shutdown");
                     return;
                 }
-
+                // FIXME: Handle caller and callee fields
                 final Message.Payload payload = Utils.decode(packet.data).payload;
 
                 LOG.debug("Decoded: {}", payload);
@@ -101,7 +101,6 @@ public class TrustService implements Runnable, IncomingDataHandler {
                             payload.dataRequest.rid,
                             db.getId().get(Type.fromEnum(payload.dataRequest.type)),
                             payload.dataRequest.type,
-                            new Entity(name.getBytes()),
                             new DataResponse.Response());
                     // querying for trust or assessments?
                     response.response.seqOf = payload.dataRequest.type.value.equals(BigInteger.ZERO) ?
@@ -118,10 +117,9 @@ public class TrustService implements Runnable, IncomingDataHandler {
                     fr.trustDef = new BerIA5String(db.getFormat().get(Type.TRUST).getBytes());
                     outgoing.payload.formatResponse = fr;
                 } else if (payload.dataResponse != null) {
-                    LOG.info("[data-response] ({}B): {} / ({}) {}",
+                    LOG.info("[data-response] ({}B): {} / {}",
                             packet.data.length,
                             payload.dataResponse.type,
-                            payload.dataResponse.provider,
                             payload.dataResponse.response.seqOf);
                     continue;
                 } else if (payload.formatResponse != null) {
