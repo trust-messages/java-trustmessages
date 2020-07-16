@@ -4,10 +4,7 @@ import org.openmuc.jasn1.ber.types.BerEnum;
 import org.openmuc.jasn1.ber.types.BerInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import trustmessages.asn.DataRequest;
-import trustmessages.asn.FormatRequest;
-import trustmessages.asn.Message;
-import trustmessages.asn.Query;
+import trustmessages.asn.*;
 import trustmessages.socket.TrustSocket;
 import trustmessages.tms.TrustService;
 
@@ -56,7 +53,7 @@ public class Node {
         final Scanner s = new Scanner(System.in);
         final Random random = new Random();
         while (true) {
-            String line, address = null, verb, criteria;
+            String line, address = null, verb, criteria, callee;
             String[] commands;
             int port = -1;
             try {
@@ -68,20 +65,29 @@ public class Node {
                     break;
                 }
 
-                commands = line.split(" ", 4);
+                commands = line.split(" ", 5);
                 address = commands[0];
                 port = Integer.parseInt(commands[1]);
                 verb = commands[2];
-                criteria = commands.length == 4 ? commands[3] : null;
 
                 if (verb.equalsIgnoreCase("connect")) {
                     socket.connect(InetAddress.getByName(address), port);
-                } else if (verb.equalsIgnoreCase("disconnect")) {
+                    continue;
+                }
+
+                // read callee
+                callee = commands[3];
+
+                if (verb.equalsIgnoreCase("disconnect")) {
                     socket.disconnect(InetAddress.getByName(address), port);
                 } else if (verb.equalsIgnoreCase("treq") ||
                         verb.equalsIgnoreCase("areq")) {
+                    criteria = commands[4];
+
                     final Message request = new Message();
                     request.version = new BerInteger(1L);
+                    request.caller = service.system;
+                    request.callee = new Entity(callee.getBytes());
                     final Query query = Utils.getQuery(criteria);
                     request.payload = new Message.Payload();
                     request.payload.dataRequest = new DataRequest(
@@ -93,6 +99,8 @@ public class Node {
                 } else {
                     final Message request = new Message();
                     request.version = new BerInteger(1L);
+                    request.caller = service.system;
+                    request.callee = new Entity(callee.getBytes());
                     request.payload = new Message.Payload();
                     request.payload.formatRequest = new FormatRequest(100);
                     socket.send(InetAddress.getByName(address), port, Utils.encode(request));

@@ -42,10 +42,10 @@ public class TrustService implements Runnable, IncomingDataHandler {
 
     private final BlockingQueue<TrustMessage> queue = new LinkedBlockingQueue<>();
     private final InMemoryTrustDb db;
-    private final String name;
+    public final Entity system;
 
-    public TrustService(String service, String name) {
-        this.name = name;
+    public TrustService(String service, String system) {
+        this.system = new Entity(system.getBytes());
 
         if (service.equalsIgnoreCase("qtm")) {
             db = new QTMDb();
@@ -86,12 +86,15 @@ public class TrustService implements Runnable, IncomingDataHandler {
                     return;
                 }
                 // FIXME: Handle caller and callee fields
-                final Message.Payload payload = Utils.decode(packet.data).payload;
+                final Message incoming = Utils.decode(packet.data);
+                final Message.Payload payload = incoming.payload;
 
                 LOG.debug("Decoded: {}", payload);
 
                 final Message outgoing = new Message();
                 outgoing.version = new BerInteger(1L);
+                outgoing.caller = incoming.caller;
+                outgoing.callee = incoming.callee;
                 outgoing.payload = new Message.Payload();
 
                 if (payload.dataRequest != null) {
